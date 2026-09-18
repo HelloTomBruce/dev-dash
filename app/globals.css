@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+body {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "PingFang SC",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
