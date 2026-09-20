@@ -102,7 +102,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

@@ -10,6 +10,7 @@ import { NpmDetailPanel } from "@/components/panels/npm-panel";
 import { UvDetailPanel } from "@/components/panels/uv-panel";
 import { PnpmDetailPanel } from "@/components/panels/pnpm-panel";
 import { ContainerDetailPanel } from "@/components/panels/container-panel";
+import { GhPanel } from "@/components/panels/gh/gh-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +22,7 @@ export default function ToolDetailPage() {
   if (id === "uv") return <UvDetailPanel />;
   if (id === "pnpm") return <PnpmDetailPanel />;
   if (id === "apple-container") return <ContainerDetailPanel />;
+  if (id === "gh") return <GhPanel />;
   return <GenericDetail id={id} />;
 }
 
