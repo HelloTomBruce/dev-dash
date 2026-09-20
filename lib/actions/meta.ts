@@ -38,6 +38,9 @@ export const ACTION_META: Record<string, ActionMeta> = {
   // postgres
   "pg.createdb": { id: "pg.createdb", label: "新建数据库", level: "careful" },
   "pg.dropdb": { id: "pg.dropdb", label: "删除数据库", level: "dangerous" },
+  // redis
+  "redis.del-key": { id: "redis.del-key", label: "删除 key", level: "careful" },
+  "redis.flushdb": { id: "redis.flushdb", label: "清空数据库（FLUSHDB）", level: "dangerous" },
   // pnpm
   "pnpm.outdated": { id: "pnpm.outdated", label: "检查全局过期包", level: "safe" },
   "pnpm.update-g-all": { id: "pnpm.update-g-all", label: "升级所有全局包", level: "careful" },
@@ -80,7 +83,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

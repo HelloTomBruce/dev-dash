@@ -82,6 +82,7 @@ npm run dev                # 默认端口 3100
 |------|------|
 | `/tools/n` | Node 版本管理：当前激活版本、已装版本列表（含磁盘占用）、设为默认 / 删除 / 安装新版本（快捷版本来自 nodejs.org，带 LTS 标记 + 自定义输入）、目录可写性检测（sudo 提示） |
 | `/tools/psql` | PostgreSQL：服务状态 + 启停/重启、端口 / 数据目录 / 活动连接、数据库列表（大小/属主/连接数）+ 新建/删除（系统库保护）+ 复制连接串、角色列表（过滤内置 pg_* 角色） |
+| `/tools/redis` | Redis：服务状态 + 启停/重启、端口/模式/运行时长/内存峰值/连接数、Keyspace 分 db 展示（key 数/过期数）+ key 样例（类型/TTL）+ 删除 key + FLUSHDB（dangerous） |
 
 其他工具访问 `/tools/<id>` 显示通用兜底页。新增详情页 = `app/api/tools/<id>/route.ts`（数据接口）+ `components/panels/<id>-panel.tsx`（面板组件）+ `DETAIL_PAGES` 注册 id。面板通用件在 `components/panels/shared.tsx`（useActionRunner / InfoCard / PanelButton）。
 
@@ -135,5 +136,5 @@ commandDetector({
 - [x] P4：每工具操作菜单（通用 + 专属操作、结果弹窗、分级确认）
 - [x] P5a：n 专属详情页（版本管理 / 安装 / 切换 / 删除 / 磁盘占用）
 - [x] P5b：PostgreSQL 专属详情页（服务管理 / 数据库列表 / 建删库 / 角色）
-- [ ] P5c：长任务异步化（当前升级类操作同步等待；可改为任务队列 + 流式输出）
-- [ ] P6：更多工具详情页（brew / npm / Redis / container…）、⌘K 搜索、版本过期徽章、JSON 导出
+- [x] P5c：Redis 专属详情页（Keyspace 浏览 / 删除 key / FLUSHDB / 内存与连接统计）
+- [ ] P6：更多工具详情页（brew / npm / container…）、长任务异步化、⌘K 搜索、版本过期徽章、JSON 导出

@@ -89,6 +89,24 @@ function validateDbName(params: Record<string, string> | undefined): string {
 /** PostgreSQL 系统库，禁止删除 */
 const PG_PROTECTED_DBS = new Set(["postgres", "template0", "template1"]);
 
+/** 校验 Redis key：禁止引号/反斜线/控制字符/shell 元字符 */
+function validateRedisKey(params: Record<string, string> | undefined): string {
+  const k = params?.key;
+  if (!k || !/^[\x20-\x7E]{1,512}$/.test(k) || /["'\\$`;&|<>]/.test(k)) {
+    throw new Error(`key 含不允许的字符`);
+  }
+  return k;
+}
+
+/** 校验 Redis db 序号 */
+function validateRedisDb(params: Record<string, string> | undefined): string {
+  const d = params?.db?.trim() ?? "0";
+  if (!/^\d{1,2}$/.test(d) || Number(d) > 15) {
+    throw new Error(`非法 db 序号: ${d}`);
+  }
+  return d;
+}
+
 async function exec(
   actionId: string,
   command: string,
@@ -170,4 +188,10 @@ export const actionExecutors: Record<string, ActionExecutor> = {
     }
     return exec("pg.dropdb", `dropdb ${db}`, 30_000);
   },
+
+  // ---- redis ----
+  "redis.del-key": (p) =>
+    exec("redis.del-key", `redis-cli del "${validateRedisKey(p)}"`, 15_000),
+  "redis.flushdb": (p) =>
+    exec("redis.flushdb", `redis-cli -n ${validateRedisDb(p)} flushdb`, 15_000),
 };
