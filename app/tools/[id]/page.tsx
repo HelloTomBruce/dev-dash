@@ -5,12 +5,14 @@ import Link from "next/link";
 import { NDetailPanel } from "@/components/panels/n-panel";
 import { PsqlDetailPanel } from "@/components/panels/psql-panel";
 import { RedisDetailPanel } from "@/components/panels/redis-panel";
+import { BrewDetailPanel } from "@/components/panels/brew-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
   if (id === "n") return <NDetailPanel />;
   if (id === "psql") return <PsqlDetailPanel />;
   if (id === "redis") return <RedisDetailPanel />;
+  if (id === "brew") return <BrewDetailPanel />;
   return <GenericDetail id={id} />;
 }
 
@@ -26,7 +28,8 @@ function GenericDetail({ id }: { id: string }) {
           该工具暂无专属详情页。目前已有：
           <code className="text-emerald-400">/tools/n</code>、
           <code className="text-emerald-400">/tools/psql</code>、
-          <code className="text-emerald-400">/tools/redis</code>
+          <code className="text-emerald-400">/tools/redis</code>、
+          <code className="text-emerald-400">/tools/brew</code>
         </p>
       </div>
     </main>

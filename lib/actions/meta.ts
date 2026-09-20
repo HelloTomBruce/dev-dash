@@ -23,6 +23,8 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "brew.update": { id: "brew.update", label: "brew update", level: "careful" },
   "brew.upgrade-all": { id: "brew.upgrade-all", label: "升级所有 formula", level: "careful" },
   "brew.upgrade": { id: "brew.upgrade", label: "brew upgrade", level: "careful" },
+  "brew.upgrade-cask": { id: "brew.upgrade-cask", label: "brew upgrade --cask", level: "careful" },
+  "brew.uninstall": { id: "brew.uninstall", label: "卸载软件包", level: "dangerous" },
   "brew.cleanup": { id: "brew.cleanup", label: "清理旧版本缓存", level: "careful" },
   "brew.doctor": { id: "brew.doctor", label: "brew doctor 体检", level: "safe" },
   "brew.outdated": { id: "brew.outdated", label: "查看过期包", level: "safe" },
@@ -83,7 +85,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

@@ -25,18 +25,49 @@ const BREW_SERVICES_ALLOWED = new Set([
   "mongodb-community",
 ]);
 
-/** brew upgrade 允许操作的 formula 白名单（与 meta.ts BREW_FORMULA 对应） */
-const BREW_UPGRADE_ALLOWED = new Set([
-  "python@3.14",
-  "go",
-  "postgresql@17",
-  "redis",
-  "git",
-  "gh",
-  "ffmpeg",
-  "uv",
-  "container",
-]);
+/** 已安装 brew 包缓存（动态白名单：升级/卸载只允许操作已装的包） */
+let brewInstalledCache: {
+  at: number;
+  formulae: Set<string>;
+  casks: Set<string>;
+} | null = null;
+
+async function getBrewInstalled(): Promise<{
+  formulae: Set<string>;
+  casks: Set<string>;
+}> {
+  if (brewInstalledCache && Date.now() - brewInstalledCache.at < 60_000) {
+    return brewInstalledCache;
+  }
+  const [f, c] = await Promise.all([
+    run(`brew list --formula`, 30_000),
+    run(`brew list --cask`, 30_000),
+  ]);
+  const toSet = (s: string) => new Set(s.split("\n").map((l) => l.trim()).filter(Boolean));
+  brewInstalledCache = {
+    at: Date.now(),
+    formulae: toSet(f.stdout),
+    casks: toSet(c.stdout),
+  };
+  return brewInstalledCache;
+}
+
+/** 校验 brew 包名：格式合法 + 实际已安装 */
+async function validateBrewPackage(
+  params: Record<string, string> | undefined,
+  kind: "formula" | "cask"
+): Promise<string> {
+  const f = params?.formula?.trim();
+  if (!f || !/^[a-zA-Z0-9@._+/-]+$/.test(f)) {
+    throw new Error(`非法包名: ${f ?? "(空)"}`);
+  }
+  const installed = await getBrewInstalled();
+  const set = kind === "formula" ? installed.formulae : installed.casks;
+  if (!set.has(f)) {
+    throw new Error(`未安装的 ${kind}: ${f}`);
+  }
+  return f;
+}
 
 function requireParam(
   params: Record<string, string> | undefined,
@@ -151,8 +182,12 @@ export const actionExecutors: Record<string, ActionExecutor> = {
   // ---- brew ----
   "brew.update": () => exec("brew.update", `brew update`, 120_000),
   "brew.upgrade-all": () => exec("brew.upgrade-all", `brew upgrade`, 600_000, { okIfOutput: true }),
-  "brew.upgrade": (p) =>
-    exec("brew.upgrade", `brew upgrade ${requireParam(p, "formula", BREW_UPGRADE_ALLOWED)}`, 300_000, { okIfOutput: true }),
+  "brew.upgrade": async (p) =>
+    exec("brew.upgrade", `brew upgrade ${await validateBrewPackage(p, "formula")}`, 300_000, { okIfOutput: true }),
+  "brew.upgrade-cask": async (p) =>
+    exec("brew.upgrade-cask", `brew upgrade --cask ${await validateBrewPackage(p, "cask")}`, 300_000, { okIfOutput: true }),
+  "brew.uninstall": async (p) =>
+    exec("brew.uninstall", `brew uninstall ${await validateBrewPackage(p, "formula")}`, 120_000),
   "brew.cleanup": () => exec("brew.cleanup", `brew cleanup`, 180_000),
   "brew.doctor": () => exec("brew.doctor", `brew doctor`, 90_000, { okIfOutput: true }),
   "brew.outdated": () => exec("brew.outdated", `brew outdated`, 60_000, { okIfOutput: true }),
