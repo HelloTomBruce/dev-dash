@@ -6,7 +6,7 @@ import {
   parseRateLimit,
   rollupState,
 } from "./parse";
-import type { GhItem, GhMine, GhOverview, GhRepoDetail, GhRepoRef } from "./types";
+import type { GhItem, GhMine, GhOverview, GhRepoDetail, GhRepoRef, GhSearchType } from "./types";
 import { validateRepo } from "./validate";
 
 const SEARCH_FIELDS = "number,title,repository,url,updatedAt";
@@ -218,4 +218,31 @@ export async function repoQuery(repoParam: string): Promise<GhRepoDetail> {
     errors,
     durationMs: Date.now() - start,
   };
+}
+
+const SEARCH_TYPES: Record<
+  GhSearchType,
+  { cmd: string; fields: string }
+> = {
+  repos: { cmd: "repos", fields: "fullName,description,stargazersCount,url" },
+  issues: { cmd: "issues", fields: "number,title,repository,state,updatedAt,url" },
+  prs: { cmd: "prs", fields: "number,title,repository,state,updatedAt,url" },
+  code: { cmd: "code", fields: "repository,path" },
+  commits: { cmd: "commits", fields: "sha,commit,repository" },
+};
+
+export interface GhSearchResult {
+  type: GhSearchType;
+  q: string;
+  /** 原始 JSON 行（字段随 type 不同） */
+  items: Array<Record<string, unknown>>;
+}
+
+export async function searchQuery(q: string, type: GhSearchType): Promise<GhSearchResult> {
+  const t = SEARCH_TYPES[type];
+  const items = await runGhJson<Array<Record<string, unknown>>>(
+    ["search", t.cmd, q, "--limit", "20", "--json", t.fields],
+    25000
+  );
+  return { type, q, items };
 }
