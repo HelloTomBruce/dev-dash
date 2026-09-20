@@ -6,6 +6,7 @@ import { NDetailPanel } from "@/components/panels/n-panel";
 import { PsqlDetailPanel } from "@/components/panels/psql-panel";
 import { RedisDetailPanel } from "@/components/panels/redis-panel";
 import { BrewDetailPanel } from "@/components/panels/brew-panel";
+import { NpmDetailPanel } from "@/components/panels/npm-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ export default function ToolDetailPage() {
   if (id === "psql") return <PsqlDetailPanel />;
   if (id === "redis") return <RedisDetailPanel />;
   if (id === "brew") return <BrewDetailPanel />;
+  if (id === "npm") return <NpmDetailPanel />;
   return <GenericDetail id={id} />;
 }
 
@@ -29,7 +31,8 @@ function GenericDetail({ id }: { id: string }) {
           <code className="text-emerald-400">/tools/n</code>、
           <code className="text-emerald-400">/tools/psql</code>、
           <code className="text-emerald-400">/tools/redis</code>、
-          <code className="text-emerald-400">/tools/brew</code>
+          <code className="text-emerald-400">/tools/brew</code>、
+          <code className="text-emerald-400">/tools/npm</code>
         </p>
       </div>
     </main>

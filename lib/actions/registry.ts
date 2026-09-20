@@ -138,6 +138,36 @@ function validateRedisDb(params: Record<string, string> | undefined): string {
   return d;
 }
 
+/** 校验 npm 包名（官方命名规则，天然无 shell 元字符） */
+const NPM_NAME_RE = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/;
+
+function validateNpmName(params: Record<string, string> | undefined): string {
+  const n = params?.pkg?.trim();
+  if (!n || n.length > 214 || !NPM_NAME_RE.test(n)) {
+    throw new Error(`非法 npm 包名: ${n ?? "(空)"}`);
+  }
+  return n;
+}
+
+/** npm 全局已装包缓存（升级/卸载只允许操作已装的包） */
+let npmGlobalCache: { at: number; names: Set<string> } | null = null;
+
+async function getNpmGlobal(): Promise<Set<string>> {
+  if (npmGlobalCache && Date.now() - npmGlobalCache.at < 60_000) {
+    return npmGlobalCache.names;
+  }
+  const res = await run(`npm ls -g --depth=0 --json`, 30_000);
+  const names = new Set<string>();
+  try {
+    const j = JSON.parse(res.stdout.trim());
+    for (const name of Object.keys(j.dependencies ?? {})) names.add(name);
+  } catch {
+    /* 保持空集合，后续校验会拦截 */
+  }
+  npmGlobalCache = { at: Date.now(), names };
+  return names;
+}
+
 async function exec(
   actionId: string,
   command: string,
@@ -195,6 +225,20 @@ export const actionExecutors: Record<string, ActionExecutor> = {
   // ---- node / n / npm / pnpm ----
   "npm.outdated": () => exec("npm.outdated", `npm outdated -g --depth=0`, 60_000, { okIfOutput: true }),
   "npm.update-g-all": () => exec("npm.update-g-all", `npm update -g`, 600_000),
+  "npm.install-g": (p) =>
+    exec("npm.install-g", `npm install -g ${validateNpmName(p)}@latest`, 300_000),
+  "npm.update-g": async (p) => {
+    const pkg = validateNpmName(p);
+    const installed = await getNpmGlobal();
+    if (!installed.has(pkg)) throw new Error(`未全局安装的包: ${pkg}`);
+    return exec("npm.update-g", `npm install -g ${pkg}@latest`, 300_000);
+  },
+  "npm.uninstall-g": async (p) => {
+    const pkg = validateNpmName(p);
+    const installed = await getNpmGlobal();
+    if (!installed.has(pkg)) throw new Error(`未全局安装的包: ${pkg}`);
+    return exec("npm.uninstall-g", `npm uninstall -g ${pkg}`, 120_000);
+  },
   "n.install-lts": () => exec("n.install-lts", `n lts`, 300_000),
   "n.install-latest": () => exec("n.install-latest", `n latest`, 300_000),
   "n.prune": () => exec("n.prune", `n prune`, 60_000),

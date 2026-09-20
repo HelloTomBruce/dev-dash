@@ -31,6 +31,9 @@ export const ACTION_META: Record<string, ActionMeta> = {
   // node / n
   "npm.outdated": { id: "npm.outdated", label: "检查全局过期包", level: "safe" },
   "npm.update-g-all": { id: "npm.update-g-all", label: "升级所有全局包", level: "careful" },
+  "npm.install-g": { id: "npm.install-g", label: "安装全局包", level: "careful" },
+  "npm.update-g": { id: "npm.update-g", label: "升级全局包", level: "careful" },
+  "npm.uninstall-g": { id: "npm.uninstall-g", label: "卸载全局包", level: "dangerous" },
   "n.install-lts": { id: "n.install-lts", label: "安装 Node LTS", level: "careful" },
   "n.install-latest": { id: "n.install-latest", label: "安装 Node latest", level: "careful" },
   "n.prune": { id: "n.prune", label: "清理旧 Node 版本", level: "dangerous" },
@@ -85,7 +88,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {
