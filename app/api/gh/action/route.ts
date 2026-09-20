@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const id = body.id;
-  if (!id || !(id in ghActionExecutors)) {
+  if (!id || !Object.hasOwn(ghActionExecutors, id)) {
     return NextResponse.json({ error: `未知的动作 id: ${id ?? "(空)"}` }, { status: 400 });
   }
 

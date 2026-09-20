@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { GhMine, GhOverview } from "@/lib/gh/types";
+import type { GhOverview } from "@/lib/gh/types";
 import { MineView } from "./mine";
 import { RepoView } from "./repo-view";
 import { SearchView } from "./search-view";
