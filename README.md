@@ -6,8 +6,8 @@
 
 ```bash
 npm install
-npm run dev -- -p 3410   # 端口可自定，3000 常被占用
-# 打开 http://localhost:3410
+npm run dev                # 默认端口 3100
+# 打开 http://localhost:3100
 ```
 
 ## 功能
