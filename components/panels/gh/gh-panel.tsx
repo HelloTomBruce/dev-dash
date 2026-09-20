@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import type { GhOverview } from "@/lib/gh/types";
+import type { GhMine, GhOverview } from "@/lib/gh/types";
 import { MineView } from "./mine";
 import { RepoView } from "./repo-view";
 import { SearchView } from "./search-view";
@@ -157,7 +157,7 @@ export function GhPanel() {
         ))}
       </nav>
 
-      {tab === "mine" && <MineView />}
+      {tab === "mine" && <MineView mine={overview.mine} />}
       {tab === "repo" && <RepoView />}
       {tab === "search" && <SearchView />}
       {tab === "overview" && <OverviewTab overview={overview} />}
