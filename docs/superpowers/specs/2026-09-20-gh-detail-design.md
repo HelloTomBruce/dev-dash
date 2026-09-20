@@ -26,7 +26,7 @@
 ```
 lib/gh/
   runner.ts     # runGh(args: string[], timeoutMs) — 参数数组 → zsh 安全转义 → 复用 run()
-  parse.ts      # gh auth status / gh status / gh pr status 文本输出解析
+  parse.ts      # gh auth status / gh extension list 文本输出解析（「我的」数据改用 gh search --json 结构化查询，不解析 gh status 文本）
   queries.ts    # 4 类只读查询（overview / repos / repo / search）
   actions.ts    # 写操作执行器白名单 + 校验器
 app/api/gh/
@@ -69,6 +69,13 @@ components/panels/gh/
 - `gh auth status`（parse.ts 解析）→ `auth: { loggedIn, account, source, scopes, tokenExpired }`；未登录时其余命令跳过，返回 `error: "auth"`
 - `gh extension list` → `extensions: [{ name, version }]`
 - `gh api rate_limit` → `rateLimit: { remaining, limit, resetAt }`
+- 登录时另并行 4 条 `gh search --json` 结构化查询组成 `mine`：
+  - `gh search prs --review-requested=@me --state=open` → `reviewRequested`
+  - `gh search prs --author=@me --state=open` → `myPrs`
+  - `gh search issues --assignee=@me --state=open` → `assignedIssues`
+  - `gh search issues --mentions=@me --state=open` → `mentions`
+
+`mine` 每项为 `{ repo, number, title, url, updatedAt, kind: "pr"|"issue" }`（用 `isPullRequest` 区分）。搜索 API 限额 30 次/分，overview 刷新即消耗 4 次，刷新按钮旁显示配额以提示。未登录时上述全部跳过。
 
 ### 4.2 GET /api/gh/repos
 
@@ -113,7 +120,7 @@ components/panels/gh/
 - **未登录守卫**：overview 返回 `error: "auth"` 时整页引导（说明 `gh auth login` 需交互式终端，须用户自行执行），不渲染其余视图
 - **顶部 header**：← 返回仪表盘、版本、账号 badge、API 配额（remaining/limit）、刷新按钮
 - **Tab 视图**：
-  - **我的**（默认）：`gh status`（mentions / review requests / assignments）+ `gh pr status`（NeedsAction / InReview 分组），每条显示仓库名 + 跳转 GitHub 链接
+  - **我的**（默认）：四组结构化列表——待我 review 的 PR、我发起的 PR、指派给我的 issue、提及我的（PR+issue 混合），每条显示仓库名 + 跳转 GitHub 链接
   - **仓库**：repo picker（最近 push 30 个，文本过滤）→ 选中后子 tab：
     - **PR**：标题、作者、checks 状态灯、mergeable；行内 approve / merge（选方式）/ close
     - **Issues**：行内 close / reopen / 评论
@@ -145,4 +152,4 @@ components/panels/gh/
 5. **P5 写操作**：actions.ts + /api/gh/action + 行内按钮 + 确认流
 6. **P6 收尾**：概览 tab、错误条、build + 浏览器实测
 
-P2 说明：`gh status` 与 `gh pr status` 数据挂在 overview 路由返回中（同为"我的"维度），mine.tsx 只读 overview 数据中的对应字段，不新增路由。
+P2 说明：`mine` 数据挂在 overview 路由返回中（§4.1），mine.tsx 只读 overview 数据中的对应字段，不新增路由。
