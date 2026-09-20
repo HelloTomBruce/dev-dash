@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ToolCard } from "@/components/tool-card";
 import { InventoryDrawer } from "@/components/inventory-drawer";
+import { CommandPalette, type PaletteItem } from "@/components/command-palette";
 import { CATEGORY_META, type Category, type ScanResult } from "@/lib/detectors/types";
 import { INVENTORY_META, type InventoryMeta } from "@/lib/inventories/meta";
-import { ACTION_META, COMMON_ACTIONS, SERVICE_ACTIONS, TOOL_ACTIONS, type ToolActionDef } from "@/lib/actions/meta";
+import { ACTION_META, COMMON_ACTIONS, DETAIL_PAGES, SERVICE_ACTIONS, TOOL_ACTIONS, type ToolActionDef } from "@/lib/actions/meta";
 import { ActionResultModal, type ResultModalState } from "@/components/action-result-modal";
 import type { HealthCheckResult } from "@/lib/health/providers";
 
@@ -21,6 +23,7 @@ const CATEGORY_ORDER: Category[] = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [data, setData] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,6 +35,10 @@ export default function Home() {
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [resultModal, setResultModal] = useState<ResultModalState | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [packageIndex, setPackageIndex] = useState<
+    Array<{ name: string; version: string | null; toolId: string; group: string }>
+  >([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchScan = useCallback(async (force = false) => {
@@ -81,6 +88,49 @@ export default function Home() {
       setTimeout(() => setCopied(null), 1500);
     });
   }, []);
+
+  // ⌘K / Ctrl+K 打开全局搜索
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // 扫描完成后后台预取清单内容，构建包索引（服务端有 60s 缓存，开销可控）
+  useEffect(() => {
+    if (!data) return;
+    const specs = [
+      { id: "npm-global", toolId: "npm", group: "npm 全局包" },
+      { id: "brew", toolId: "brew", group: "brew 软件包" },
+      { id: "uv-tools", toolId: "uv", group: "uv 工具" },
+      { id: "n-versions", toolId: "n", group: "Node 版本" },
+    ].filter((s) => data.tools.find((t) => t.id === s.toolId)?.status === "ok");
+    let cancelled = false;
+    Promise.all(
+      specs.map((s) =>
+        fetch(`/api/inventory?id=${s.id}`)
+          .then((r) => r.json())
+          .then((j) =>
+            ((j.items ?? []) as Array<{ name: string; version: string | null }>).map(
+              (it) => ({ name: it.name, version: it.version, toolId: s.toolId, group: s.group })
+            )
+          )
+          .catch(
+            () => [] as Array<{ name: string; version: string | null; toolId: string; group: string }>
+          )
+      )
+    ).then((all) => {
+      if (!cancelled) setPackageIndex(all.flat());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [data]);
 
   /** 执行服务启停动作 */
   const runServiceAction = useCallback(
@@ -175,6 +225,66 @@ export default function Home() {
     [fetchScan, handleCopy]
   );
 
+  /** 搜索面板条目 */
+  const paletteItems = useMemo<PaletteItem[]>(() => {
+    if (!data) return [];
+    const items: PaletteItem[] = [];
+    const toolById = new Map(data.tools.map((t) => [t.id, t]));
+
+    // 详情页
+    for (const id of DETAIL_PAGES) {
+      const t = toolById.get(id);
+      if (t?.status === "ok") {
+        items.push({
+          id: `page:${id}`,
+          label: `${t.name} 详情页`,
+          sub: t.version ?? undefined,
+          group: "详情页",
+          action: () => router.push(`/tools/${id}`),
+        });
+      }
+    }
+    // 工具
+    for (const t of data.tools) {
+      if (t.status !== "ok") continue;
+      const hasDetail = DETAIL_PAGES.includes(t.id);
+      const invs = INVENTORY_META.filter((m) => m.toolId === t.id);
+      items.push({
+        id: `tool:${t.id}`,
+        label: t.name,
+        sub: t.version ?? undefined,
+        group: "工具",
+        action: () => {
+          if (hasDetail) router.push(`/tools/${t.id}`);
+          else if (invs.length > 0) setDrawer(invs[0]);
+          else if (t.path) handleCopy(t.path);
+        },
+      });
+    }
+    // 清单
+    for (const inv of INVENTORY_META) {
+      if (toolById.get(inv.toolId)?.status === "ok") {
+        items.push({
+          id: `inv:${inv.id}`,
+          label: inv.label,
+          group: "已装清单",
+          action: () => setDrawer(inv),
+        });
+      }
+    }
+    // 包索引（预取的清单内容）
+    for (const p of packageIndex) {
+      items.push({
+        id: `pkg:${p.toolId}:${p.name}`,
+        label: p.name,
+        sub: p.version ?? undefined,
+        group: p.group,
+        action: () => router.push(`/tools/${p.toolId}`),
+      });
+    }
+    return items;
+  }, [data, packageIndex, router, handleCopy]);
+
   /** 工具的操作菜单 = 通用操作 + 工具专属操作 */
   const actionsFor = useCallback(
     (tool: { id: string; status: string }): ToolActionDef[] => {
@@ -215,6 +325,13 @@ export default function Home() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+          >
+            ⌕ 搜索
+            <kbd className="rounded border border-zinc-700 px-1 text-[10px]">⌘K</kbd>
+          </button>
           <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-zinc-400">
             <input
               type="checkbox"
@@ -353,6 +470,13 @@ export default function Home() {
           onClose={() => setResultModal(null)}
         />
       )}
+
+      {/* ⌘K 全局搜索 */}
+      <CommandPalette
+        open={paletteOpen}
+        items={paletteItems}
+        onClose={() => setPaletteOpen(false)}
+      />
     </main>
   );
 }

@@ -84,6 +84,18 @@ npm run dev                # 默认端口 3100
 | `/tools/psql` | PostgreSQL：服务状态 + 启停/重启、端口 / 数据目录 / 活动连接、数据库列表（大小/属主/连接数）+ 新建/删除（系统库保护）+ 复制连接串、角色列表（过滤内置 pg_* 角色） |
 | `/tools/redis` | Redis：服务状态 + 启停/重启、端口/模式/运行时长/内存峰值/连接数、Keyspace 分 db 展示（key 数/过期数）+ key 样例（类型/TTL）+ 删除 key + FLUSHDB（dangerous） |
 | `/tools/brew` | Homebrew：formula/cask 清单（主装/依赖标记）、过期包专区（当前→最新 + 单包/全量升级）、Cellar/缓存占用（懒加载）、brew update/cleanup、单包卸载（dangerous） |
+| `/tools/npm` | npm 全局包：registry 展示、过期包专区（current→latest）、单包升级/卸载、安装新包（npm 命名规则校验 + 已装动态校验） |
+| `/tools/uv` | uv：工具清单（含 bins）+ 升级/卸载/安装、Python 解释器列表（uv 托管/外部区分）+ 安装/卸载、快捷版本按钮（过滤已装大版本） |
+| `/tools/pnpm` | pnpm：全局 bin 目录配置诊断（PATH 问题检测 + 修复提示）、Store 管理（占用懒加载 + store prune）、全局包安装/升级/卸载 |
+| `/tools/apple-container` | Apple Container：apiserver 状态 + 启停、内核配置检测、容器列表（状态/IP/镜像）+ 启停/删除、镜像列表 + 删除、清理已停止容器 |
+
+### 全局搜索（⌘K）
+仪表盘按 ⌘K / Ctrl+K（或点头部搜索按钮）打开命令面板：
+- **详情页**：跳转所有已装工具的专属详情页
+- **工具**：跳转详情页 / 打开清单 / 复制路径
+- **已装清单**：打开对应抽屉
+- **包索引**：扫描后后台预取 npm 全局包、brew、uv 工具、Node 版本，可直接搜包名跳转到所属工具页
+- 键盘导航：↑↓ 选择、↵ 打开、esc 关闭
 
 其他工具访问 `/tools/<id>` 显示通用兜底页。新增详情页 = `app/api/tools/<id>/route.ts`（数据接口）+ `components/panels/<id>-panel.tsx`（面板组件）+ `DETAIL_PAGES` 注册 id。面板通用件在 `components/panels/shared.tsx`（useActionRunner / InfoCard / PanelButton）。
 
@@ -139,4 +151,8 @@ commandDetector({
 - [x] P5b：PostgreSQL 专属详情页（服务管理 / 数据库列表 / 建删库 / 角色）
 - [x] P5c：Redis 专属详情页（Keyspace 浏览 / 删除 key / FLUSHDB / 内存与连接统计）
 - [x] P5d：brew 专属详情页（清单 / 过期高亮 / 单包升级卸载 / 动态白名单）
-- [ ] P6：更多工具详情页（npm / container…）、长任务异步化、⌘K 搜索、版本过期徽章、JSON 导出
+- [x] P5e：npm 专属详情页（全局包升级 / 卸载 / 安装 / registry 展示）
+- [x] P5f：uv 专属详情页（工具管理 / Python 解释器管理）
+- [x] P5g：pnpm 专属详情页（Store 管理 / 配置诊断 / 全局包管理）
+- [x] P6a：Apple Container 详情页（容器/镜像管理、内核检测）+ ⌘K 全局搜索
+- [ ] P6b：长任务异步化、版本过期徽章上仪表盘、JSON 导出

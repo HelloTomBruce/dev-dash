@@ -1,4 +1,5 @@
 import { detectors } from "./detectors/registry";
+import { resetLoginPath } from "./detectors/utils/shell";
 import type { ScanResult, ToolResult } from "./detectors/types";
 
 const CACHE_TTL_MS = 60_000;
@@ -24,6 +25,9 @@ export async function runScan(force = false): Promise<ScanResult> {
   if (!force && cache && Date.now() - cache.at < CACHE_TTL_MS) {
     return cache.result;
   }
+
+  // 强制刷新时重新预取登录 shell PATH（用户可能刚改了 shell 配置）
+  if (force) resetLoginPath();
 
   const start = Date.now();
 

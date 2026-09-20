@@ -7,6 +7,9 @@ import { PsqlDetailPanel } from "@/components/panels/psql-panel";
 import { RedisDetailPanel } from "@/components/panels/redis-panel";
 import { BrewDetailPanel } from "@/components/panels/brew-panel";
 import { NpmDetailPanel } from "@/components/panels/npm-panel";
+import { UvDetailPanel } from "@/components/panels/uv-panel";
+import { PnpmDetailPanel } from "@/components/panels/pnpm-panel";
+import { ContainerDetailPanel } from "@/components/panels/container-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +18,9 @@ export default function ToolDetailPage() {
   if (id === "redis") return <RedisDetailPanel />;
   if (id === "brew") return <BrewDetailPanel />;
   if (id === "npm") return <NpmDetailPanel />;
+  if (id === "uv") return <UvDetailPanel />;
+  if (id === "pnpm") return <PnpmDetailPanel />;
+  if (id === "apple-container") return <ContainerDetailPanel />;
   return <GenericDetail id={id} />;
 }
 
@@ -32,7 +38,9 @@ function GenericDetail({ id }: { id: string }) {
           <code className="text-emerald-400">/tools/psql</code>、
           <code className="text-emerald-400">/tools/redis</code>、
           <code className="text-emerald-400">/tools/brew</code>、
-          <code className="text-emerald-400">/tools/npm</code>
+          <code className="text-emerald-400">/tools/npm</code>、
+          <code className="text-emerald-400">/tools/uv</code>、
+          <code className="text-emerald-400">/tools/pnpm</code>
         </p>
       </div>
     </main>

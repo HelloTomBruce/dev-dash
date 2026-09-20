@@ -17,6 +17,11 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "brew.services.restart": { id: "brew.services.restart", label: "重启服务", level: "safe" },
   "container.system.start": { id: "container.system.start", label: "启动容器系统", level: "safe" },
   "container.system.stop": { id: "container.system.stop", label: "停止容器系统", level: "safe" },
+  "container.prune": { id: "container.prune", label: "清理已停止容器", level: "careful" },
+  "container.start-one": { id: "container.start-one", label: "启动容器", level: "careful" },
+  "container.stop-one": { id: "container.stop-one", label: "停止容器", level: "careful" },
+  "container.rm": { id: "container.rm", label: "删除容器", level: "dangerous" },
+  "container.image-rm": { id: "container.image-rm", label: "删除镜像", level: "dangerous" },
   // 通用
   "tool.open-dir": { id: "tool.open-dir", label: "打开所在目录", level: "safe" },
   // brew
@@ -49,10 +54,19 @@ export const ACTION_META: Record<string, ActionMeta> = {
   // pnpm
   "pnpm.outdated": { id: "pnpm.outdated", label: "检查全局过期包", level: "safe" },
   "pnpm.update-g-all": { id: "pnpm.update-g-all", label: "升级所有全局包", level: "careful" },
+  "pnpm.install-g": { id: "pnpm.install-g", label: "安装全局包", level: "careful" },
+  "pnpm.update-g": { id: "pnpm.update-g", label: "升级全局包", level: "careful" },
+  "pnpm.uninstall-g": { id: "pnpm.uninstall-g", label: "卸载全局包", level: "dangerous" },
+  "pnpm.store-prune": { id: "pnpm.store-prune", label: "清理 store 无引用内容", level: "careful" },
   // pip
   "pip.outdated": { id: "pip.outdated", label: "检查过期包", level: "safe" },
   // uv
   "uv.tool-upgrade-all": { id: "uv.tool-upgrade-all", label: "升级所有 uv 工具", level: "careful" },
+  "uv.tool-upgrade": { id: "uv.tool-upgrade", label: "升级 uv 工具", level: "careful" },
+  "uv.tool-uninstall": { id: "uv.tool-uninstall", label: "卸载 uv 工具", level: "dangerous" },
+  "uv.tool-install": { id: "uv.tool-install", label: "安装 uv 工具", level: "careful" },
+  "uv.python-install": { id: "uv.python-install", label: "安装 Python", level: "careful" },
+  "uv.python-uninstall": { id: "uv.python-uninstall", label: "卸载 Python", level: "dangerous" },
   // rust
   "rustup.update": { id: "rustup.update", label: "rustup update", level: "careful" },
   // rubygems
@@ -88,7 +102,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

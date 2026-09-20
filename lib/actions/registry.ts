@@ -168,6 +168,97 @@ async function getNpmGlobal(): Promise<Set<string>> {
   return names;
 }
 
+/** 校验 pypi 包名（uv 工具用） */
+const PYPI_NAME_RE = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$/;
+
+function validatePypiName(params: Record<string, string> | undefined): string {
+  const n = params?.name?.trim();
+  if (!n || n.length > 214 || !PYPI_NAME_RE.test(n)) {
+    throw new Error(`非法包名: ${n ?? "(空)"}`);
+  }
+  return n;
+}
+
+/** 校验 Python 版本号（uv python install 用） */
+function validatePythonVersion(params: Record<string, string> | undefined): string {
+  const v = params?.version?.trim();
+  if (!v || !/^\d+(\.\d+){0,2}$/.test(v)) {
+    throw new Error(`非法 Python 版本: ${v ?? "(空)"}`);
+  }
+  return v;
+}
+
+/** uv tool 已装列表缓存（升级/卸载动态校验） */
+let uvToolCache: { at: number; names: Set<string> } | null = null;
+
+async function getUvTools(): Promise<Set<string>> {
+  if (uvToolCache && Date.now() - uvToolCache.at < 60_000) return uvToolCache.names;
+  const res = await run(`uv tool list`, 20_000);
+  const names = new Set<string>();
+  for (const line of res.stdout.split("\n")) {
+    const m = line.trim().match(/^(\S+)\s+v(\S+)$/);
+    if (m) names.add(m[1]);
+  }
+  uvToolCache = { at: Date.now(), names };
+  return names;
+}
+
+/** uv 管理的 Python 版本缓存 */
+let uvPythonCache: { at: number; versions: Set<string> } | null = null;
+
+async function getUvPythons(): Promise<Set<string>> {
+  if (uvPythonCache && Date.now() - uvPythonCache.at < 60_000) return uvPythonCache.versions;
+  const res = await run(`uv python list --only-installed`, 20_000);
+  const versions = new Set<string>();
+  for (const line of res.stdout.split("\n")) {
+    const m = line.trim().match(/^(cpython|pypy)-(\d+\.\d+\.\d+)/);
+    if (m) versions.add(m[2]);
+  }
+  uvPythonCache = { at: Date.now(), versions };
+  return versions;
+}
+
+/** pnpm 全局已装包缓存 */
+let pnpmGlobalCache: { at: number; names: Set<string> } | null = null;
+
+async function getPnpmGlobal(): Promise<Set<string>> {
+  if (pnpmGlobalCache && Date.now() - pnpmGlobalCache.at < 60_000) {
+    return pnpmGlobalCache.names;
+  }
+  const res = await run(`pnpm ls -g --depth=0 --json 2>/dev/null`, 30_000);
+  const names = new Set<string>();
+  try {
+    const arr = JSON.parse(res.stdout.trim() || "[]") as Array<{
+      dependencies?: Record<string, unknown>;
+    }>;
+    for (const proj of arr) {
+      for (const name of Object.keys(proj.dependencies ?? {})) names.add(name);
+    }
+  } catch {
+    /* 保持空集合 */
+  }
+  pnpmGlobalCache = { at: Date.now(), names };
+  return names;
+}
+
+/** 校验容器 ID/名称 */
+function validateContainerId(params: Record<string, string> | undefined): string {
+  const v = params?.id?.trim();
+  if (!v || !/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/.test(v)) {
+    throw new Error(`非法容器 ID: ${v ?? "(空)"}`);
+  }
+  return v;
+}
+
+/** 校验镜像引用（registry/name:tag@digest 字符集） */
+function validateImageRef(params: Record<string, string> | undefined): string {
+  const v = params?.ref?.trim();
+  if (!v || !/^[a-zA-Z0-9][a-zA-Z0-9./:@_-]{0,255}$/.test(v)) {
+    throw new Error(`非法镜像引用: ${v ?? "(空)"}`);
+  }
+  return v;
+}
+
 async function exec(
   actionId: string,
   command: string,
@@ -205,6 +296,16 @@ export const actionExecutors: Record<string, ActionExecutor> = {
     exec("container.system.start", `container system start`, 90_000),
   "container.system.stop": () =>
     exec("container.system.stop", `container system stop`, 60_000),
+  "container.prune": () =>
+    exec("container.prune", `container prune -a 2>&1 || container prune`, 120_000, { okIfOutput: true }),
+  "container.start-one": (p) =>
+    exec("container.start-one", `container start ${validateContainerId(p)}`, 120_000),
+  "container.stop-one": (p) =>
+    exec("container.stop-one", `container stop ${validateContainerId(p)}`, 60_000),
+  "container.rm": (p) =>
+    exec("container.rm", `container delete ${validateContainerId(p)}`, 60_000),
+  "container.image-rm": (p) =>
+    exec("container.image-rm", `container image rm ${validateImageRef(p)}`, 60_000),
 
   // ---- 通用 ----
   "tool.open-dir": (p) => exec("tool.open-dir", `open "${validateDir(p)}"`, 10_000),
@@ -248,11 +349,46 @@ export const actionExecutors: Record<string, ActionExecutor> = {
   "n.rm": (p) => exec("n.rm", `n rm ${validateExactVersion(p)}`, 60_000),
   "pnpm.outdated": () => exec("pnpm.outdated", `pnpm outdated -g`, 60_000, { okIfOutput: true }),
   "pnpm.update-g-all": () => exec("pnpm.update-g-all", `pnpm update -g`, 600_000),
+  "pnpm.install-g": (p) =>
+    exec("pnpm.install-g", `pnpm add -g ${validateNpmName(p)}@latest`, 300_000),
+  "pnpm.update-g": async (p) => {
+    const pkg = validateNpmName(p);
+    if (!(await getPnpmGlobal()).has(pkg)) throw new Error(`未全局安装的包: ${pkg}`);
+    return exec("pnpm.update-g", `pnpm update -g ${pkg}@latest`, 300_000);
+  },
+  "pnpm.uninstall-g": async (p) => {
+    const pkg = validateNpmName(p);
+    if (!(await getPnpmGlobal()).has(pkg)) throw new Error(`未全局安装的包: ${pkg}`);
+    return exec("pnpm.uninstall-g", `pnpm remove -g ${pkg}`, 120_000);
+  },
+  "pnpm.store-prune": () => exec("pnpm.store-prune", `pnpm store prune`, 300_000, { okIfOutput: true }),
 
   // ---- pip / uv ----
   "pip.outdated": () =>
     exec("pip.outdated", `pip3 list --outdated --disable-pip-version-check`, 60_000, { okIfOutput: true }),
   "uv.tool-upgrade-all": () => exec("uv.tool-upgrade-all", `uv tool upgrade --all`, 300_000, { okIfOutput: true }),
+  "uv.tool-upgrade": async (p) => {
+    const name = validatePypiName(p);
+    if (!(await getUvTools()).has(name)) throw new Error(`未安装的 uv 工具: ${name}`);
+    return exec("uv.tool-upgrade", `uv tool upgrade ${name}`, 300_000, { okIfOutput: true });
+  },
+  "uv.tool-uninstall": async (p) => {
+    const name = validatePypiName(p);
+    if (!(await getUvTools()).has(name)) throw new Error(`未安装的 uv 工具: ${name}`);
+    return exec("uv.tool-uninstall", `uv tool uninstall ${name}`, 60_000);
+  },
+  "uv.tool-install": (p) =>
+    exec("uv.tool-install", `uv tool install ${validatePypiName(p)}`, 300_000),
+  "uv.python-install": (p) =>
+    exec("uv.python-install", `uv python install ${validatePythonVersion(p)}`, 600_000),
+  "uv.python-uninstall": async (p) => {
+    const v = validatePythonVersion(p);
+    if (!/^\d+\.\d+\.\d+$/.test(v)) {
+      throw new Error(`卸载需要完整版本号（x.y.z）: ${v}`);
+    }
+    if (!(await getUvPythons()).has(v)) throw new Error(`未安装的 Python: ${v}`);
+    return exec("uv.python-uninstall", `uv python uninstall ${v}`, 60_000);
+  },
 
   // ---- rust / rubygems ----
   "rustup.update": () => exec("rustup.update", `rustup update`, 600_000, { okIfOutput: true }),

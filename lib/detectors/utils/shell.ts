@@ -35,6 +35,11 @@ export function getLoginPath(): Promise<string | null> {
   return loginPathPromise;
 }
 
+/** 丢弃缓存的登录 PATH（环境变更后强制刷新时调用，下次执行重新预取） */
+export function resetLoginPath(): void {
+  loginPathPromise = null;
+}
+
 /** 用登录 shell 的环境执行命令（带超时，永不抛异常） */
 export async function run(
   cmd: string,
