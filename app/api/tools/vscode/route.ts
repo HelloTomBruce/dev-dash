@@ -260,11 +260,12 @@ export async function GET(request: Request) {
     ? whichRes.stdout.trim()
     : "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code";
 
-  // 并行获取：版本、进程、状态输出、已安装插件、设置文件摘要
-  const [versionRes, pgrepRes, statusRes, extensions, settingsStat] = await Promise.all([
+  // 并行获取：版本、进程、状态输出、ps真实指标、已安装插件、设置文件摘要
+  const [versionRes, pgrepRes, statusRes, psRes, extensions, settingsStat] = await Promise.all([
     run(`"${codeBin}" --version 2>&1`, 8000),
     run('pgrep -f "Visual Studio Code|Code Helper"', 5000),
     run(`"${codeBin}" --status 2>&1`, 15000),
+    run("ps -eo pid,%cpu,rss", 5000),
     getInstalledExtensions(),
     fs.stat(settingsPath).catch(() => null),
   ]);
@@ -278,6 +279,37 @@ export async function GET(request: Request) {
   const arch = versionLines[2] || "arm64";
 
   const { sys, processes, workspaces } = parseCodeStatus(statusRes.stdout);
+
+  // 解析 ps 输出获取精确的实时 CPU% 与物理内存 (RSS)
+  const psMap = new Map<string, { cpu: string; mem: string }>();
+  if (psRes.ok) {
+    for (const line of psRes.stdout.split("\n")) {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 3) {
+        const pid = parts[0];
+        const cpuNum = Number(parts[1]) || 0;
+        const rssKB = Number(parts[2]) || 0;
+        psMap.set(pid, {
+          cpu: `${cpuNum.toFixed(1)}%`,
+          mem: rssKB > 1024 * 1024
+            ? `${(rssKB / (1024 * 1024)).toFixed(1)} GB`
+            : rssKB > 1024
+            ? `${(rssKB / 1024).toFixed(0)} MB`
+            : `${rssKB} KB`,
+        });
+      }
+    }
+  }
+
+  // 将 ps 精确指标合并进拓扑树
+  const accurateProcesses = processes.map((proc) => {
+    const realStat = psMap.get(proc.pid);
+    return {
+      ...proc,
+      cpu: realStat?.cpu ?? proc.cpu,
+      mem: realStat?.mem ?? proc.mem,
+    };
+  });
 
   return NextResponse.json({
     status: isRunning ? "running" : "stopped",
@@ -293,7 +325,7 @@ export async function GET(request: Request) {
       ...sys,
       architecture: arch,
     },
-    processes,
+    processes: accurateProcesses,
     workspaces,
     extensions,
     extensionsCount: extensions.length,

@@ -400,7 +400,7 @@ export function VscodeDetailPanel() {
                     <th className="px-3 py-2 font-medium">类型</th>
                     <th className="px-3 py-2 font-medium">PID</th>
                     <th className="px-3 py-2 font-medium">CPU%</th>
-                    <th className="px-3 py-2 font-medium">虚拟内存</th>
+                    <th className="px-3 py-2 font-medium">物理内存 (RSS)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/40 font-mono text-[11px]">
