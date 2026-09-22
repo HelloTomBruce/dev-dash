@@ -42,16 +42,4 @@ export const baseToolDetectors: Detector[] = [
     versionArgs: "-v",
     parseVersion: (out) => out.match(/nginx\/(\S+)/)?.[1] ?? null,
   }),
-  commandDetector({
-    id: "vscode",
-    name: "VS Code",
-    category: "base-tool",
-    binaries: [
-      "code",
-      '"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"',
-      '"$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"',
-    ],
-    versionArgs: "--version",
-    parseVersion: (out) => out.split("\n")[0]?.trim() || null,
-  }),
 ];

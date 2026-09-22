@@ -12,7 +12,6 @@ import { PnpmDetailPanel } from "@/components/panels/pnpm-panel";
 import { ContainerDetailPanel } from "@/components/panels/container-panel";
 import { GhPanel } from "@/components/panels/gh/gh-panel";
 import { NginxDetailPanel } from "@/components/panels/nginx-panel";
-import { VscodeDetailPanel } from "@/components/panels/vscode-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +25,6 @@ export default function ToolDetailPage() {
   if (id === "apple-container") return <ContainerDetailPanel />;
   if (id === "gh") return <GhPanel />;
   if (id === "nginx") return <NginxDetailPanel />;
-  if (id === "vscode") return <VscodeDetailPanel />;
   return <GenericDetail id={id} />;
 }
 

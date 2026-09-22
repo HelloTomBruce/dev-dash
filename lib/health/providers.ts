@@ -60,13 +60,4 @@ export const healthProviders: Record<string, HealthFn> = {
       detail: ok ? `${pids.length} 个进程运行中 (主 PID: ${pids[0]})` : "未运行",
     };
   },
-  vscode: async () => {
-    const res = await run('pgrep -f "Visual Studio Code|Code Helper"', 5000);
-    const pids = res.stdout.trim().split("\n").filter(Boolean);
-    const ok = res.ok && pids.length > 0;
-    return {
-      status: ok ? "running" : "stopped",
-      detail: ok ? `${pids.length} 个进程运行中 (主 PID: ${pids[0]})` : "未运行",
-    };
-  },
 };
