@@ -51,4 +51,13 @@ export const healthProviders: Record<string, HealthFn> = {
   mongo: () => portCheck(27017, "MongoDB"),
   docker: () => cmdCheck(`docker info --format 'Server {{.ServerVersion}}'`, "Server"),
   "apple-container": () => cmdCheck(`container system status`),
+  nginx: async () => {
+    const res = await run("pgrep nginx", 5000);
+    const pids = res.stdout.trim().split("\n").filter(Boolean);
+    const ok = res.ok && pids.length > 0;
+    return {
+      status: ok ? "running" : "stopped",
+      detail: ok ? `${pids.length} 个进程运行中 (主 PID: ${pids[0]})` : "未运行",
+    };
+  },
 };

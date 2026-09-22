@@ -43,6 +43,7 @@ npm run dev                # 默认端口 3100
 | MySQL / MongoDB | 端口探测（3306 / 27017） |
 | Docker | `docker info` |
 | Apple Container | `container system status` |
+| Nginx | `pgrep nginx` 进程与活跃数 |
 
 新增健康检查 = `lib/health/providers.ts` 里加一条 `toolId: () => cmdCheck(...)` 或 `portCheck(...)`。
 
@@ -61,9 +62,10 @@ npm run dev                # 默认端口 3100
 | uv | 升级所有 uv 工具 · brew 升级 |
 | Rust | rustup update |
 | Homebrew | 过期列表 · doctor 体检 · update · 全量升级 · 清理缓存 |
-| brew 安装的工具 | brew upgrade 升级自身（go/python@3.14/postgresql@17/redis/git/gh/ffmpeg/uv/container） |
+| Nginx | 测试配置（nginx -t）· 重载配置（nginx -s reload）· brew 升级 |
+| brew 安装的工具 | brew upgrade 升级自身（go/python@3.14/postgresql@17/redis/git/gh/ffmpeg/uv/container/nginx） |
 | RubyGems | gem update --system |
-| PostgreSQL / Redis / MySQL / Apple Container | 卡片上的 ▶启动/■停止 按钮 |
+| PostgreSQL / Redis / MySQL / Apple Container / Nginx | 卡片上的 ▶启动/■停止 按钮 |
 
 **信息类操作**（safe）在弹窗中展示命令与完整输出；**变更类**（careful）需确认，执行后自动强制刷新。
 
@@ -88,6 +90,7 @@ npm run dev                # 默认端口 3100
 | `/tools/uv` | uv：工具清单（含 bins）+ 升级/卸载/安装、Python 解释器列表（uv 托管/外部区分）+ 安装/卸载、快捷版本按钮（过滤已装大版本） |
 | `/tools/pnpm` | pnpm：全局 bin 目录配置诊断（PATH 问题检测 + 修复提示）、Store 管理（占用懒加载 + store prune）、全局包安装/升级/卸载 |
 | `/tools/apple-container` | Apple Container：apiserver 状态 + 启停、内核配置检测、容器列表（状态/IP/镜像）+ 启停/删除、镜像列表 + 删除、清理已停止容器 |
+| `/tools/nginx` | Nginx：服务状态 + 启停/重启/重载、语法测试（nginx -t）、站点路由与反向代理列表（带跳转链接）、在线配置文件编辑器（自动防错回滚）、访问/错误日志监控、进程与编译参数 |
 
 ### 全局搜索（⌘K）
 仪表盘按 ⌘K / Ctrl+K（或点头部搜索按钮）打开命令面板：

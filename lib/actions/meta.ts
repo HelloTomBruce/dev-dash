@@ -71,6 +71,10 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "rustup.update": { id: "rustup.update", label: "rustup update", level: "careful" },
   // rubygems
   "gem.update-system": { id: "gem.update-system", label: "gem update --system", level: "careful" },
+  // nginx
+  "nginx.test": { id: "nginx.test", label: "测试配置语法 (nginx -t)", level: "safe" },
+  "nginx.reload": { id: "nginx.reload", label: "重新加载配置 (nginx -s reload)", level: "careful" },
+  "nginx.save-conf": { id: "nginx.save-conf", label: "保存配置文件", level: "careful" },
 };
 
 export interface ServiceActionRef {
@@ -95,6 +99,10 @@ export const SERVICE_ACTIONS: Record<
     start: { actionId: "brew.services.start", params: { formula: "mysql" } },
     stop: { actionId: "brew.services.stop", params: { formula: "mysql" } },
   },
+  nginx: {
+    start: { actionId: "brew.services.start", params: { formula: "nginx" } },
+    stop: { actionId: "brew.services.stop", params: { formula: "nginx" } },
+  },
   "apple-container": {
     start: { actionId: "container.system.start" },
     stop: { actionId: "container.system.stop" },
@@ -102,7 +110,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {
@@ -131,6 +139,7 @@ const BREW_FORMULA: Record<string, string> = {
   ffmpeg: "ffmpeg",
   uv: "uv",
   "apple-container": "container",
+  nginx: "nginx",
 };
 
 function brewUpgradeDef(toolId: string): ToolActionDef {
@@ -180,6 +189,11 @@ export const TOOL_ACTIONS: Record<string, ToolActionDef[]> = {
     { key: "brew.update", label: "brew update", level: "careful", actionId: "brew.update", refreshAfter: true },
     { key: "brew.upgrade-all", label: "升级所有 formula", level: "careful", actionId: "brew.upgrade-all", refreshAfter: true },
     { key: "brew.cleanup", label: "清理旧版本缓存", level: "careful", actionId: "brew.cleanup" },
+  ],
+  nginx: [
+    { key: "nginx.test", label: "测试配置 (nginx -t)", level: "safe", actionId: "nginx.test", showOutput: true },
+    { key: "nginx.reload", label: "重载配置 (nginx -s reload)", level: "careful", actionId: "nginx.reload", refreshAfter: true },
+    brewUpgradeDef("nginx"),
   ],
   python: [brewUpgradeDef("python")],
   go: [brewUpgradeDef("go")],
