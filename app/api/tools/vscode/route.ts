@@ -189,7 +189,7 @@ function parseCodeStatus(out: string) {
 
 async function getInstalledExtensions(): Promise<VscodeExtension[]> {
   const extDir = path.join(os.homedir(), ".vscode/extensions");
-  const extensions: VscodeExtension[] = [];
+  const extMap = new Map<string, VscodeExtension>();
 
   try {
     const dirs = await fs.readdir(extDir, { withFileTypes: true });
@@ -202,7 +202,7 @@ async function getInstalledExtensions(): Promise<VscodeExtension[]> {
         const publisher = pkg.publisher || d.name.split(".")[0] || "unknown";
         const name = pkg.name || d.name.split("-")[0] || d.name;
         const id = `${publisher}.${name}`;
-        extensions.push({
+        const item: VscodeExtension = {
           id,
           name,
           displayName: pkg.displayName || name,
@@ -210,7 +210,11 @@ async function getInstalledExtensions(): Promise<VscodeExtension[]> {
           version: pkg.version || "unknown",
           description: pkg.description || "",
           dirName: d.name,
-        });
+        };
+        const existing = extMap.get(id);
+        if (!existing || item.version > existing.version) {
+          extMap.set(id, item);
+        }
       } catch {
         // ignore malformed extension
       }
@@ -219,6 +223,7 @@ async function getInstalledExtensions(): Promise<VscodeExtension[]> {
     // extensions dir doesn't exist
   }
 
+  const extensions = Array.from(extMap.values());
   extensions.sort((a, b) => a.displayName.localeCompare(b.displayName));
   return extensions;
 }

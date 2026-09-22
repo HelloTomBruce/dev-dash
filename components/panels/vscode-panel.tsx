@@ -562,9 +562,9 @@ export function VscodeDetailPanel() {
                   没有找到匹配的扩展插件。
                 </div>
               ) : (
-                filteredExtensions.map((ext) => (
+                filteredExtensions.map((ext, idx) => (
                   <div
-                    key={ext.id}
+                    key={ext.dirName || `${ext.id}-${idx}`}
                     className="flex flex-col justify-between rounded-lg border border-zinc-800 bg-zinc-950/70 p-3.5 transition hover:border-zinc-700"
                   >
                     <div>
