@@ -475,19 +475,70 @@ export const actionExecutors: Record<string, ActionExecutor> = {
         };
       }
 
-      return {
-        ok: true,
-        actionId: "nginx.save-conf",
-        command: `save ${normalized} && nginx -t`,
-        output: `保存成功！语法校验通过:\n${output}`,
-        error: null,
-        durationMs: Date.now() - start,
-      };
-    } catch (e) {
-      if (originalContent !== null) {
-        await fs.writeFile(normalized, originalContent, "utf-8").catch(() => {});
+        return {
+          ok: true,
+          actionId: "nginx.save-conf",
+          command: `save ${normalized} && nginx -t`,
+          output: `保存成功！语法校验通过:\n${output}`,
+          error: null,
+          durationMs: Date.now() - start,
+        };
+      } catch (e) {
+        if (originalContent !== null) {
+          await fs.writeFile(normalized, originalContent, "utf-8").catch(() => {});
+        }
+        throw e;
       }
-      throw e;
+    },
+
+    // ---- vscode ----
+  "vscode.open": () => exec("vscode.open", 'open -a "Visual Studio Code"', 10_000),
+  "vscode.quit": () => exec("vscode.quit", "osascript -e 'quit app \"Visual Studio Code\"'", 10_000),
+  "vscode.restart": () =>
+    exec("vscode.restart", "osascript -e 'quit app \"Visual Studio Code\"' && sleep 1 && open -a \"Visual Studio Code\"", 20_000),
+  "vscode.status": async () => {
+    const codeBin = (await run("which code 2>/dev/null", 3000)).stdout.trim() ||
+      '"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"';
+    return exec("vscode.status", `${codeBin} --status`, 25_000, { okIfOutput: true });
+  },
+  "vscode.install-extension": async (p) => {
+    const id = p?.id?.trim();
+    if (!id || !/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_.-]+$/.test(id)) {
+      throw new Error(`非法插件 ID: ${id ?? "(空)"}`);
     }
+    const codeBin = (await run("which code 2>/dev/null", 3000)).stdout.trim() ||
+      '"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"';
+    return exec("vscode.install-extension", `${codeBin} --install-extension ${id}`, 120_000, { okIfOutput: true });
+  },
+  "vscode.uninstall-extension": async (p) => {
+    const id = p?.id?.trim();
+    if (!id || !/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_.-]+$/.test(id)) {
+      throw new Error(`非法插件 ID: ${id ?? "(空)"}`);
+    }
+    const codeBin = (await run("which code 2>/dev/null", 3000)).stdout.trim() ||
+      '"/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"';
+    return exec("vscode.uninstall-extension", `${codeBin} --uninstall-extension ${id}`, 60_000, { okIfOutput: true });
+  },
+  "vscode.save-settings": async (p) => {
+    const start = Date.now();
+    const content = p?.content;
+    if (typeof content !== "string") throw new Error("缺少配置内容");
+    try {
+      // 校验 JSON 格式
+      JSON.parse(content);
+    } catch (e) {
+      throw new Error(`JSON 格式错误: ${String(e)}`);
+    }
+    const home = process.env.HOME || "/Users/zhangbei";
+    const settingsPath = path.join(home, "Library/Application Support/Code/User/settings.json");
+    await fs.writeFile(settingsPath, content, "utf-8");
+    return {
+      ok: true,
+      actionId: "vscode.save-settings",
+      command: `save ${settingsPath}`,
+      output: "settings.json 保存成功！",
+      error: null,
+      durationMs: Date.now() - start,
+    };
   },
 };

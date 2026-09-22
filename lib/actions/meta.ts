@@ -75,6 +75,14 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "nginx.test": { id: "nginx.test", label: "测试配置语法 (nginx -t)", level: "safe" },
   "nginx.reload": { id: "nginx.reload", label: "重新加载配置 (nginx -s reload)", level: "careful" },
   "nginx.save-conf": { id: "nginx.save-conf", label: "保存配置文件", level: "careful" },
+  // vscode
+  "vscode.open": { id: "vscode.open", label: "启动 VS Code", level: "safe" },
+  "vscode.quit": { id: "vscode.quit", label: "退出 VS Code", level: "careful" },
+  "vscode.restart": { id: "vscode.restart", label: "重启 VS Code", level: "careful" },
+  "vscode.status": { id: "vscode.status", label: "进程状态与诊断 (code --status)", level: "safe" },
+  "vscode.install-extension": { id: "vscode.install-extension", label: "安装扩展插件", level: "careful" },
+  "vscode.uninstall-extension": { id: "vscode.uninstall-extension", label: "卸载扩展插件", level: "dangerous" },
+  "vscode.save-settings": { id: "vscode.save-settings", label: "保存 settings.json", level: "careful" },
 };
 
 export interface ServiceActionRef {
@@ -103,6 +111,10 @@ export const SERVICE_ACTIONS: Record<
     start: { actionId: "brew.services.start", params: { formula: "nginx" } },
     stop: { actionId: "brew.services.stop", params: { formula: "nginx" } },
   },
+  vscode: {
+    start: { actionId: "vscode.open" },
+    stop: { actionId: "vscode.quit" },
+  },
   "apple-container": {
     start: { actionId: "container.system.start" },
     stop: { actionId: "container.system.stop" },
@@ -110,7 +122,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx", "vscode"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {
@@ -194,6 +206,11 @@ export const TOOL_ACTIONS: Record<string, ToolActionDef[]> = {
     { key: "nginx.test", label: "测试配置 (nginx -t)", level: "safe", actionId: "nginx.test", showOutput: true },
     { key: "nginx.reload", label: "重载配置 (nginx -s reload)", level: "careful", actionId: "nginx.reload", refreshAfter: true },
     brewUpgradeDef("nginx"),
+  ],
+  vscode: [
+    { key: "vscode.open", label: "启动 VS Code", level: "safe", actionId: "vscode.open", refreshAfter: true },
+    { key: "vscode.status", label: "进程诊断 (code --status)", level: "safe", actionId: "vscode.status", showOutput: true },
+    { key: "vscode.restart", label: "重启 VS Code", level: "careful", actionId: "vscode.restart", refreshAfter: true },
   ],
   python: [brewUpgradeDef("python")],
   go: [brewUpgradeDef("go")],

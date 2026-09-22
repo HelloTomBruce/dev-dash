@@ -12,13 +12,13 @@ npm run dev                # 默认端口 3100
 
 ## 功能
 
-### 工具探测（35 项）
+### 工具探测（36 项）
 - **运行时**：Node / Python / Go / Rust / Java / Bun / Deno
 - **版本管理器**：n / nvm / pyenv / mise / asdf
 - **包管理器**：npm / pnpm / yarn / pip / uv / pipx / cargo / gem / composer
 - **容器**：Apple Container / Docker / Podman / Colima / kubectl
 - **数据库**：PostgreSQL / MySQL / SQLite / Redis / MongoDB Shell
-- **基础工具**：Git / Homebrew / gh / FFmpeg / Nginx
+- **基础工具**：Git / Homebrew / gh / FFmpeg / Nginx / VS Code
 
 ### 已装清单（点卡片上的 📋 按钮查看，支持搜索）
 | 入口 | 命令 |
@@ -44,6 +44,7 @@ npm run dev                # 默认端口 3100
 | Docker | `docker info` |
 | Apple Container | `container system status` |
 | Nginx | `pgrep nginx` 进程与活跃数 |
+| VS Code | `pgrep -f "Visual Studio Code"` 进程与活跃数 |
 
 新增健康检查 = `lib/health/providers.ts` 里加一条 `toolId: () => cmdCheck(...)` 或 `portCheck(...)`。
 
@@ -63,9 +64,10 @@ npm run dev                # 默认端口 3100
 | Rust | rustup update |
 | Homebrew | 过期列表 · doctor 体检 · update · 全量升级 · 清理缓存 |
 | Nginx | 测试配置（nginx -t）· 重载配置（nginx -s reload）· brew 升级 |
+| VS Code | 启动应用 · 重启应用 · 退出应用 · 进程诊断（code --status） |
 | brew 安装的工具 | brew upgrade 升级自身（go/python@3.14/postgresql@17/redis/git/gh/ffmpeg/uv/container/nginx） |
 | RubyGems | gem update --system |
-| PostgreSQL / Redis / MySQL / Apple Container / Nginx | 卡片上的 ▶启动/■停止 按钮 |
+| PostgreSQL / Redis / MySQL / Apple Container / Nginx / VS Code | 卡片上的 ▶启动/■停止 按钮 |
 
 **信息类操作**（safe）在弹窗中展示命令与完整输出；**变更类**（careful）需确认，执行后自动强制刷新。
 
@@ -91,6 +93,7 @@ npm run dev                # 默认端口 3100
 | `/tools/pnpm` | pnpm：全局 bin 目录配置诊断（PATH 问题检测 + 修复提示）、Store 管理（占用懒加载 + store prune）、全局包安装/升级/卸载 |
 | `/tools/apple-container` | Apple Container：apiserver 状态 + 启停、内核配置检测、容器列表（状态/IP/镜像）+ 启停/删除、镜像列表 + 删除、清理已停止容器 |
 | `/tools/nginx` | Nginx：服务状态 + 启停/重启/重载、语法测试（nginx -t）、站点路由与反向代理列表（带跳转链接）、在线配置文件编辑器（自动防错回滚）、访问/错误日志监控、进程与编译参数 |
+| `/tools/vscode` | VS Code：服务启停与重启、Electron 进程拓扑与 CPU/内存监控、打开的工作区与项目代码语言分布统计、90+ 已安装扩展插件搜索与管理/安装/卸载、在线编辑 `settings.json`（自动语法校验）、硬件与系统诊断 |
 
 ### 全局搜索（⌘K）
 仪表盘按 ⌘K / Ctrl+K（或点头部搜索按钮）打开命令面板：
