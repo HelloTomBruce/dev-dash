@@ -20,6 +20,11 @@ export const CATEGORY_META: Record<
 
 export type ToolStatus = "ok" | "not-found" | "error";
 
+export interface OutdatedInfo {
+  current: string;
+  latest: string;
+}
+
 export interface ToolResult {
   id: string;
   name: string;
@@ -36,6 +41,8 @@ export interface ToolResult {
   /** status === "error" 时的错误信息 */
   error: string | null;
   durationMs: number;
+  /** 过期检查结果（仅对支持的工具有值） */
+  outdated: OutdatedInfo | null;
 }
 
 export interface ScanSummary {

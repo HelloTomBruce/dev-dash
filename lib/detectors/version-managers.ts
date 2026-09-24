@@ -29,6 +29,7 @@ const nvmDetector: Detector = {
         source: null,
         raw: null,
         error: null,
+        outdated: null,
       };
     }
     const version = m[1].trim().split("\n").pop()?.trim() ?? null;
@@ -42,6 +43,7 @@ const nvmDetector: Detector = {
       source: detectSource(`${process.env.HOME ?? ""}/.nvm/nvm.sh`),
       raw: out.slice(0, 500),
       error: null,
+      outdated: null,
     };
   },
 };

@@ -53,6 +53,7 @@ export function commandDetector(opts: CommandDetectorOptions): Detector {
             error: version
               ? null
               : `无法从输出解析版本号: ${versionOut.slice(0, 200)}`,
+            outdated: null,
           };
         }
       }
@@ -66,6 +67,7 @@ export function commandDetector(opts: CommandDetectorOptions): Detector {
         source: null,
         raw: null,
         error: null,
+        outdated: null,
       };
     },
   };

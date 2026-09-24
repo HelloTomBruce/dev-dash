@@ -8,6 +8,8 @@ export interface ActionMeta {
   id: string;
   label: string;
   level: ActionLevel;
+  /** 异步任务：前端需轮询 /api/tasks/[taskId] */
+  async?: boolean;
 }
 
 export const ACTION_META: Record<string, ActionMeta> = {
@@ -17,7 +19,7 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "brew.services.restart": { id: "brew.services.restart", label: "重启服务", level: "safe" },
   "container.system.start": { id: "container.system.start", label: "启动容器系统", level: "safe" },
   "container.system.stop": { id: "container.system.stop", label: "停止容器系统", level: "safe" },
-  "container.prune": { id: "container.prune", label: "清理已停止容器", level: "careful" },
+  "container.prune": { id: "container.prune", label: "清理已停止容器", level: "careful", async: true },
   "container.start-one": { id: "container.start-one", label: "启动容器", level: "careful" },
   "container.stop-one": { id: "container.stop-one", label: "停止容器", level: "careful" },
   "container.rm": { id: "container.rm", label: "删除容器", level: "dangerous" },
@@ -26,16 +28,16 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "tool.open-dir": { id: "tool.open-dir", label: "打开所在目录", level: "safe" },
   // brew
   "brew.update": { id: "brew.update", label: "brew update", level: "careful" },
-  "brew.upgrade-all": { id: "brew.upgrade-all", label: "升级所有 formula", level: "careful" },
+  "brew.upgrade-all": { id: "brew.upgrade-all", label: "升级所有 formula", level: "careful", async: true },
   "brew.upgrade": { id: "brew.upgrade", label: "brew upgrade", level: "careful" },
   "brew.upgrade-cask": { id: "brew.upgrade-cask", label: "brew upgrade --cask", level: "careful" },
   "brew.uninstall": { id: "brew.uninstall", label: "卸载软件包", level: "dangerous" },
-  "brew.cleanup": { id: "brew.cleanup", label: "清理旧版本缓存", level: "careful" },
+  "brew.cleanup": { id: "brew.cleanup", label: "清理旧版本缓存", level: "careful", async: true },
   "brew.doctor": { id: "brew.doctor", label: "brew doctor 体检", level: "safe" },
   "brew.outdated": { id: "brew.outdated", label: "查看过期包", level: "safe" },
   // node / n
   "npm.outdated": { id: "npm.outdated", label: "检查全局过期包", level: "safe" },
-  "npm.update-g-all": { id: "npm.update-g-all", label: "升级所有全局包", level: "careful" },
+  "npm.update-g-all": { id: "npm.update-g-all", label: "升级所有全局包", level: "careful", async: true },
   "npm.install-g": { id: "npm.install-g", label: "安装全局包", level: "careful" },
   "npm.update-g": { id: "npm.update-g", label: "升级全局包", level: "careful" },
   "npm.uninstall-g": { id: "npm.uninstall-g", label: "卸载全局包", level: "dangerous" },
@@ -53,22 +55,22 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "redis.flushdb": { id: "redis.flushdb", label: "清空数据库（FLUSHDB）", level: "dangerous" },
   // pnpm
   "pnpm.outdated": { id: "pnpm.outdated", label: "检查全局过期包", level: "safe" },
-  "pnpm.update-g-all": { id: "pnpm.update-g-all", label: "升级所有全局包", level: "careful" },
+  "pnpm.update-g-all": { id: "pnpm.update-g-all", label: "升级所有全局包", level: "careful", async: true },
   "pnpm.install-g": { id: "pnpm.install-g", label: "安装全局包", level: "careful" },
   "pnpm.update-g": { id: "pnpm.update-g", label: "升级全局包", level: "careful" },
   "pnpm.uninstall-g": { id: "pnpm.uninstall-g", label: "卸载全局包", level: "dangerous" },
-  "pnpm.store-prune": { id: "pnpm.store-prune", label: "清理 store 无引用内容", level: "careful" },
+  "pnpm.store-prune": { id: "pnpm.store-prune", label: "清理 store 无引用内容", level: "careful", async: true },
   // pip
   "pip.outdated": { id: "pip.outdated", label: "检查过期包", level: "safe" },
   // uv
-  "uv.tool-upgrade-all": { id: "uv.tool-upgrade-all", label: "升级所有 uv 工具", level: "careful" },
+  "uv.tool-upgrade-all": { id: "uv.tool-upgrade-all", label: "升级所有 uv 工具", level: "careful", async: true },
   "uv.tool-upgrade": { id: "uv.tool-upgrade", label: "升级 uv 工具", level: "careful" },
   "uv.tool-uninstall": { id: "uv.tool-uninstall", label: "卸载 uv 工具", level: "dangerous" },
   "uv.tool-install": { id: "uv.tool-install", label: "安装 uv 工具", level: "careful" },
   "uv.python-install": { id: "uv.python-install", label: "安装 Python", level: "careful" },
   "uv.python-uninstall": { id: "uv.python-uninstall", label: "卸载 Python", level: "dangerous" },
   // rust
-  "rustup.update": { id: "rustup.update", label: "rustup update", level: "careful" },
+  "rustup.update": { id: "rustup.update", label: "rustup update", level: "careful", async: true },
   // rubygems
   "gem.update-system": { id: "gem.update-system", label: "gem update --system", level: "careful" },
   // nginx
@@ -126,6 +128,8 @@ export interface ToolActionDef {
   showOutput?: boolean;
   /** 变更类操作：成功后强制刷新扫描 */
   refreshAfter?: boolean;
+  /** 是否为长任务（需异步轮询） */
+  async?: boolean;
 }
 
 /** brew formula 名（用于生成「升级」操作） */

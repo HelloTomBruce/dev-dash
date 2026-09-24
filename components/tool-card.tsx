@@ -102,6 +102,11 @@ export function ToolCard({
           ) : (
             <span className="shrink-0 font-mono text-sm font-medium text-emerald-400">
               {tool.version}
+              {tool.outdated && (
+                <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-amber-500/15 px-1 py-0.5 text-[9px] text-amber-400" title={tool.outdated.latest}>
+                  ⬆ {tool.outdated.latest}
+                </span>
+              )}
             </span>
           )}
           {onRunAction && (

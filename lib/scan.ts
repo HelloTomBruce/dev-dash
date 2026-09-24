@@ -1,6 +1,7 @@
 import { detectors } from "./detectors/registry";
 import { resetLoginPath } from "./detectors/utils/shell";
 import type { ScanResult, ToolResult } from "./detectors/types";
+import { outdatedChecks } from "./detectors/outdated";
 
 const CACHE_TTL_MS = 60_000;
 
@@ -20,6 +21,7 @@ async function withTimeout<T>(
 
 /**
  * 全量扫描：所有检测器并行执行，单个 10s 超时，结果缓存 60s。
+ * 扫描完成后对支持的额外工具并行执行过期检查。
  */
 export async function runScan(force = false): Promise<ScanResult> {
   if (!force && cache && Date.now() - cache.at < CACHE_TTL_MS) {
@@ -41,9 +43,10 @@ export async function runScan(force = false): Promise<ScanResult> {
           status: "error" as const,
           error: "探测超时",
           durationMs: Date.now() - t0,
+          outdated: null,
         };
       }
-      return { ...out, durationMs: Date.now() - t0 };
+      return { ...out, durationMs: Date.now() - t0, outdated: null };
     })
   );
 
@@ -55,8 +58,37 @@ export async function runScan(force = false): Promise<ScanResult> {
       status: "error",
       error: String(s.reason).slice(0, 200),
       durationMs: 0,
+      outdated: null,
     };
   });
+
+  // 并行执行过期检查（仅对已安装且支持的工具）
+  const outdatedPromises = tools
+    .filter((t) => t.status === "ok" && t.path && outdatedChecks[t.id])
+    .map(async (t) => {
+      try {
+        const info = await outdatedChecks[t.id]!();
+        return {
+        id: t.id,
+        outdated: info,
+      } as { id: string; outdated: ToolResult["outdated"] };
+      } catch {
+        return {
+        id: t.id,
+        outdated: null,
+      };
+      }
+    });
+  const outdatedResults = await Promise.allSettled(outdatedPromises);
+  const outdatedMap = new Map<string, ToolResult["outdated"]>();
+  for (const r of outdatedResults) {
+    if (r.status === "fulfilled") {
+      outdatedMap.set(r.value.id, r.value.outdated);
+    }
+  }
+  for (const t of tools) {
+    t.outdated = outdatedMap.get(t.id) ?? null;
+  }
 
   const installed = tools.filter((t) => t.status === "ok").length;
   const errors = tools.filter((t) => t.status === "error").length;
@@ -88,5 +120,6 @@ function emptyResult(d: (typeof detectors)[number]): Omit<ToolResult, "durationM
     source: null,
     raw: null,
     error: null,
+    outdated: null,
   };
 }

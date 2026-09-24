@@ -208,6 +208,50 @@ export default function Home() {
           body: JSON.stringify({ id: def.actionId, params }),
         });
         const j = await res.json();
+
+        // 异步任务：显示轮询弹窗
+        if (j.taskId) {
+          setResultModal({
+            title: `${tool.name} · ${def.label}`,
+            loading: true,
+            result: null,
+            taskId: j.taskId,
+          });
+          // 轮询完成后刷新扫描
+          const checkTask = async () => {
+            try {
+              while (true) {
+                const tr = await fetch(`/api/tasks?taskId=${j.taskId}`);
+                const t = await tr.json();
+                if (t.status === "done" || t.status === "failed") {
+                  setResultModal({
+                    title: `${tool.name} · ${def.label}`,
+                    loading: false,
+                    result: {
+                      ok: t.status === "done",
+                      actionId: def.actionId!,
+                      command: "",
+                      output: t.output,
+                      error: t.error,
+                      durationMs: t.durationMs,
+                      label: def.label,
+                    },
+                  });
+                  if (t.status === "done" && def.refreshAfter) {
+                    await fetchScan(true);
+                  }
+                  break;
+                }
+                await new Promise((r) => setTimeout(r, 2000));
+              }
+            } catch {
+              // ignore
+            }
+          };
+          checkTask();
+          return;
+        }
+
         setResultModal({ title: `${tool.name} · ${def.label}`, loading: false, result: j });
         if (j.ok && def.refreshAfter) {
           await fetchScan(true);
@@ -306,6 +350,9 @@ export default function Home() {
     return map;
   }, [data]);
 
+  // 统计过期工具数量
+  const outdatedCount = data?.tools.filter((t) => t.outdated != null).length ?? 0;
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       {/* 顶栏 */}
@@ -348,17 +395,20 @@ export default function Home() {
           >
             {refreshing ? "扫描中…" : "刷新"}
           </button>
+          <a
+            href="/api/export/json"
+            download
+            className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+          >
+            ↓ 导出
+          </a>
         </div>
       </header>
 
       {/* 概览条 */}
       {data && (
         <div className="mt-6 flex flex-wrap gap-3">
-          <StatCard
-            label="已安装"
-            value={data.summary.installed}
-            tone="emerald"
-          />
+          <StatCard label="已安装" value={data.summary.installed} tone="emerald" />
           <StatCard label="未安装" value={data.summary.notFound} tone="zinc" />
           <StatCard
             label="异常"
@@ -366,6 +416,13 @@ export default function Home() {
             tone={data.summary.errors > 0 ? "red" : "zinc"}
           />
           <StatCard label="检测总数" value={data.summary.total} tone="zinc" />
+          {outdatedCount > 0 && (
+            <StatCard
+              label="有更新"
+              value={outdatedCount}
+              tone="amber"
+            />
+          )}
           {Object.keys(health).length > 0 && (
             <StatCard
               label="服务运行中"
@@ -488,14 +545,16 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  tone: "emerald" | "red" | "zinc";
+  tone: "emerald" | "red" | "zinc" | "amber";
 }) {
   const toneCls =
     tone === "emerald"
       ? "text-emerald-400"
       : tone === "red"
         ? "text-red-400"
-        : "text-zinc-300";
+        : tone === "amber"
+          ? "text-amber-400"
+          : "text-zinc-300";
   return (
     <div className="flex items-baseline gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
       <span className={`text-2xl font-bold tabular-nums ${toneCls}`}>

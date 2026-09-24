@@ -43,7 +43,8 @@ export function resetLoginPath(): void {
 /** 用登录 shell 的环境执行命令（带超时，永不抛异常） */
 export async function run(
   cmd: string,
-  timeoutMs = 5000
+  timeoutMs = 5000,
+  opts?: { okIfOutput?: boolean }
 ): Promise<ExecResult> {
   const loginPath = await getLoginPath();
   const env = { ...process.env };
@@ -60,8 +61,9 @@ export async function run(
         maxBuffer: 1024 * 1024,
       },
       (err, stdout, stderr) => {
+        const ok = !err || (opts?.okIfOutput && stdout.trim().length > 0);
         resolve({
-          ok: !err,
+          ok: !!ok,
           stdout: stdout?.toString() ?? "",
           stderr: stderr?.toString() ?? "",
         });
