@@ -641,4 +641,71 @@ export const actionExecutors: Record<string, ActionExecutor> = {
       durationMs: Date.now() - start,
     };
   },
+
+  "python.del-venv": async (p) => {
+    const start = Date.now();
+    const venvPath = p?.path;
+    if (!venvPath || !path.isAbsolute(venvPath)) {
+      throw new Error("参数错误：必须提供合法的绝对路径");
+    }
+
+    const baseName = path.basename(venvPath);
+    if (![".venv", "venv", "env"].includes(baseName)) {
+      throw new Error(`安全限制：只能删除名为 .venv、venv 或 env 的虚拟环境目录 (${baseName})`);
+    }
+
+    // 检查 pyvenv.cfg 是否存在，防止误删普通目录
+    try {
+      const cfg = await fs.stat(path.join(venvPath, "pyvenv.cfg"));
+      if (!cfg.isFile()) {
+        throw new Error("安全限制：目标目录未包含 pyvenv.cfg，不是合法的虚拟环境");
+      }
+    } catch {
+      throw new Error("安全限制：未找到 pyvenv.cfg 配置文件，拒绝删除");
+    }
+
+    await fs.rm(venvPath, { recursive: true, force: true });
+
+    return {
+      ok: true,
+      actionId: "python.del-venv",
+      command: `rm -rf ${venvPath}`,
+      output: `已成功删除虚拟环境: ${venvPath}`,
+      error: null,
+      durationMs: Date.now() - start,
+    };
+  },
+
+  "python.set-pip-index": async (p) => {
+    const start = Date.now();
+    const url = p?.url?.trim();
+    if (!url) {
+      // 还原默认源
+      const res = await run("pip3 config unset global.index-url", 4000);
+      return {
+        ok: res.ok,
+        actionId: "python.set-pip-index",
+        command: "pip3 config unset global.index-url",
+        output: res.ok ? "已还原 pip 默认官方源 (https://pypi.org/simple)" : res.stdout,
+        error: res.ok ? null : res.stderr,
+        durationMs: Date.now() - start,
+      };
+    }
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      throw new Error("镜像源地址必须以 http:// 或 https:// 开头");
+    }
+
+    const cmd = `pip3 config set global.index-url "${url}"`;
+    const res = await run(cmd, 4000);
+
+    return {
+      ok: res.ok,
+      actionId: "python.set-pip-index",
+      command: cmd,
+      output: res.ok ? `已成功设置 pip 镜像源为: ${url}` : res.stdout,
+      error: res.ok ? null : (res.stderr || "设置 pip 镜像源失败"),
+      durationMs: Date.now() - start,
+    };
+  },
 };

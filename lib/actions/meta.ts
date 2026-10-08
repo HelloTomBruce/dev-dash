@@ -85,6 +85,9 @@ export const ACTION_META: Record<string, ActionMeta> = {
   // git
   "git.test-ssh": { id: "git.test-ssh", label: "测试 GitHub SSH 连通性", level: "safe" },
   "git.set-config": { id: "git.set-config", label: "更新 Git 全局配置", level: "careful" },
+  // python
+  "python.del-venv": { id: "python.del-venv", label: "删除项目虚拟环境", level: "dangerous" },
+  "python.set-pip-index": { id: "python.set-pip-index", label: "配置 pip 全局镜像源", level: "careful" },
 };
 
 export interface ServiceActionRef {
@@ -120,7 +123,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx", "git"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx", "git", "python"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

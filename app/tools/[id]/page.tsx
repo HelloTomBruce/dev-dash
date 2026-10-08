@@ -13,6 +13,7 @@ import { ContainerDetailPanel } from "@/components/panels/container-panel";
 import { GhPanel } from "@/components/panels/gh/gh-panel";
 import { NginxDetailPanel } from "@/components/panels/nginx-panel";
 import { GitPanel } from "@/components/panels/git-panel";
+import { PythonPanel } from "@/components/panels/python-panel";
 
 export default function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ export default function ToolDetailPage() {
   if (id === "gh") return <GhPanel />;
   if (id === "nginx") return <NginxDetailPanel />;
   if (id === "git") return <GitPanel />;
+  if (id === "python") return <PythonPanel />;
   return <GenericDetail id={id} />;
 }
 
