@@ -161,5 +161,5 @@ commandDetector({
 - [x] P6b：长任务异步化、版本过期徽章上仪表盘、JSON 导出
 - [x] P7a：全局端口占用监控 (Port Inspector) 与进程一键安全释放
 - [x] P7b：开发磁盘清理助手 (Dev Cleaner)
-- [ ] P7c：PATH 与版本遮蔽冲突诊断 (Environment Doctor)
+- [x] P7c：PATH 与版本遮蔽冲突诊断 (Environment Doctor)
 - [ ] P7d：Docker / Podman 深度面板与 Compose 栈管理

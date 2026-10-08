@@ -82,6 +82,9 @@ function identifyPort(port: number, processName: string, command: string): { cat
   }
 
   // 工具与调试器
+  if (cmd.includes("workbuddy") || pName.includes("workbuddy") || cmd.includes("codebuddy")) {
+    return { category: "tool", tag: "WorkBuddy (Sidecar/MCP)" };
+  }
   if (port === 9222 || port === 9229 || cmd.includes("--inspect")) {
     return { category: "tool", tag: "Node/Chrome Debugger" };
   }
