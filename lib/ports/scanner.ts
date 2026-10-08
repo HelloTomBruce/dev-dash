@@ -149,17 +149,16 @@ export async function scanListeningPorts(): Promise<PortsScanResult> {
       if (!line) continue;
       // lsof columns: COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
       const parts = line.split(/\s+/);
-      if (parts.length < 9) continue;
+      if (parts.length < 8) continue;
 
       const processName = parts[0];
       const pid = parseInt(parts[1], 10);
       const user = parts[2];
       const type = parts[4]; // IPv4 or IPv6
-      const nodeAndName = parts.slice(8).join(" "); // e.g. "TCP *:3000 (LISTEN)" or "TCP 127.0.0.1:3456 (LISTEN)"
 
-      // 从 nodeAndName 提取 IP 与端口
-      // 常见格式: "TCP *:3000 (LISTEN)", "TCP 127.0.0.1:8080 (LISTEN)", "TCP [::1]:5432 (LISTEN)", "TCP *:55967 (LISTEN)"
-      const match = nodeAndName.match(/TCP\s+(.+):(\d+)\s+\(LISTEN\)/i);
+      // 从行尾或 NAME 列提取 IP 与端口
+      // 常见格式: "TCP *:3000 (LISTEN)", "TCP 127.0.0.1:8080 (LISTEN)", "TCP [::1]:5432 (LISTEN)", "*:55967 (LISTEN)"
+      const match = line.match(/(?:TCP\s+)?(\*|\[[a-f0-9:]+\]|[0-9.]+|localhost):(\d+)\s+\(LISTEN\)/i);
       if (!match) continue;
 
       const rawAddr = match[1];
