@@ -62,6 +62,8 @@ function identifyPathSource(p: string): string {
   if (norm.includes(".opencode")) return "OpenCode";
   if (norm.includes(".gemini") || norm.includes("antigravity")) return "Antigravity";
   if (norm.includes("/usr/local/bin")) return "Local Bin (/usr/local/bin)";
+  if (norm.includes("cryptex")) return "macOS Cryptex (系统扩展)";
+  if (norm.startsWith("/pkg/env")) return "环境全局包 (/pkg/env)";
   if (norm.startsWith("/System") || norm.startsWith("/usr/bin") || norm.startsWith("/bin") || norm.startsWith("/usr/sbin") || norm.startsWith("/sbin")) {
     return "macOS 系统";
   }
