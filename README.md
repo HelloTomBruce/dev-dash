@@ -162,4 +162,5 @@ commandDetector({
 - [x] P7a：全局端口占用监控 (Port Inspector) 与进程一键安全释放
 - [x] P7b：开发磁盘清理助手 (Dev Cleaner)
 - [x] P7c：PATH 与版本遮蔽冲突诊断 (Environment Doctor)
-- [ ] P7d：Docker / Podman 深度面板与 Compose 栈管理
+- [x] P7d：Git 专属深度面板 (`/tools/git`)：本地仓库雷达、SSH 密钥管理与全局配置
+- [ ] P7e：Python 多环境深度面板 (`/tools/python`) 与虚拟环境集中清理

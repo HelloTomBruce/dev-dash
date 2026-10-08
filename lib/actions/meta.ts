@@ -82,6 +82,9 @@ export const ACTION_META: Record<string, ActionMeta> = {
   // dev cleaner
   "cleaner.clean": { id: "cleaner.clean", label: "清理指定缓存", level: "careful", async: true },
   "cleaner.clean-all": { id: "cleaner.clean-all", label: "一键清理选中缓存", level: "careful", async: true },
+  // git
+  "git.test-ssh": { id: "git.test-ssh", label: "测试 GitHub SSH 连通性", level: "safe" },
+  "git.set-config": { id: "git.set-config", label: "更新 Git 全局配置", level: "careful" },
 };
 
 export interface ServiceActionRef {
@@ -117,7 +120,7 @@ export const SERVICE_ACTIONS: Record<
 };
 
 /** 拥有专属详情页的工具 */
-export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx"];
+export const DETAIL_PAGES: string[] = ["n", "psql", "redis", "brew", "npm", "uv", "pnpm", "apple-container", "gh", "nginx", "git"];
 
 /** 卡片操作菜单中的一项 */
 export interface ToolActionDef {

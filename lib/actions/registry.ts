@@ -598,4 +598,47 @@ export const actionExecutors: Record<string, ActionExecutor> = {
       durationMs: Date.now() - start,
     };
   },
+
+  "git.test-ssh": async () => {
+    const start = Date.now();
+    const cmd = "ssh -T -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=5 git@github.com";
+    const res = await run(cmd, 8000, { okIfOutput: true });
+    const output = (res.stdout + (res.stderr ? `\n${res.stderr}` : "")).trim();
+    const isAuthenticated = output.includes("successfully authenticated") || output.includes("Hi ");
+
+    return {
+      ok: isAuthenticated,
+      actionId: "git.test-ssh",
+      command: cmd,
+      output: output || "无输出",
+      error: isAuthenticated ? null : (output || "无法通过 SSH 连接到 GitHub，请检查密钥是否添加至 GitHub 账户"),
+      durationMs: Date.now() - start,
+    };
+  },
+
+  "git.set-config": async (p) => {
+    const start = Date.now();
+    const key = p?.key;
+    const value = p?.value;
+    const ALLOWED_KEYS = new Set(["user.name", "user.email", "init.defaultBranch", "pull.rebase"]);
+
+    if (!key || !ALLOWED_KEYS.has(key)) {
+      throw new Error(`不允许修改的配置项: ${key}，允许: ${Array.from(ALLOWED_KEYS).join(", ")}`);
+    }
+    if (value === undefined || value === null) {
+      throw new Error("配置值不能为空");
+    }
+
+    const cmd = `git config --global ${key} "${value.replace(/"/g, '\\"')}"`;
+    const res = await run(cmd, 4000);
+
+    return {
+      ok: res.ok,
+      actionId: "git.set-config",
+      command: cmd,
+      output: res.ok ? `已成功设置 Git 全局配置: ${key} = ${value}` : res.stdout,
+      error: res.ok ? null : (res.stderr || "配置保存失败"),
+      durationMs: Date.now() - start,
+    };
+  },
 };
