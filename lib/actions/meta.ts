@@ -79,6 +79,9 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "nginx.save-conf": { id: "nginx.save-conf", label: "保存配置文件", level: "careful" },
   // port inspector
   "port.kill": { id: "port.kill", label: "终止进程释放端口", level: "careful" },
+  // dev cleaner
+  "cleaner.clean": { id: "cleaner.clean", label: "清理指定缓存", level: "careful", async: true },
+  "cleaner.clean-all": { id: "cleaner.clean-all", label: "一键清理选中缓存", level: "careful", async: true },
 };
 
 export interface ServiceActionRef {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ToolCard } from "@/components/tool-card";
 import { InventoryDrawer } from "@/components/inventory-drawer";
 import { PortInspectorDrawer } from "@/components/port-inspector-drawer";
+import { DevCleanerDrawer } from "@/components/dev-cleaner-drawer";
 import { CommandPalette, type PaletteItem } from "@/components/command-palette";
 import { CATEGORY_META, type Category, type ScanResult } from "@/lib/detectors/types";
 import { INVENTORY_META, type InventoryMeta } from "@/lib/inventories/meta";
@@ -33,6 +34,7 @@ export default function Home() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [drawer, setDrawer] = useState<InventoryMeta | null>(null);
   const [portDrawerOpen, setPortDrawerOpen] = useState(false);
+  const [cleanerDrawerOpen, setCleanerDrawerOpen] = useState(false);
   const [health, setHealth] = useState<Record<string, HealthCheckResult>>({});
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
@@ -337,6 +339,13 @@ export default function Home() {
       group: "系统与诊断",
       action: () => setPortDrawerOpen(true),
     });
+    items.push({
+      id: "sys:cleaner",
+      label: "🧹 开发磁盘清理助手 (Dev Cleaner)",
+      sub: "扫描并一键清理包管理器临时下载与构建缓存",
+      group: "系统与诊断",
+      action: () => setCleanerDrawerOpen(true),
+    });
 
     return items;
   }, [data, packageIndex, router, handleCopy]);
@@ -396,6 +405,12 @@ export default function Home() {
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
             <span>🔌</span> 端口监控
+          </button>
+          <button
+            onClick={() => setCleanerDrawerOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            <span>🧹</span> 磁盘清理
           </button>
           <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-zinc-400">
             <input
@@ -542,6 +557,14 @@ export default function Home() {
       {portDrawerOpen && (
         <PortInspectorDrawer
           onClose={() => setPortDrawerOpen(false)}
+          onRefreshParent={() => fetchScan(true)}
+        />
+      )}
+
+      {/* 磁盘清理助手抽屉 */}
+      {cleanerDrawerOpen && (
+        <DevCleanerDrawer
+          onClose={() => setCleanerDrawerOpen(false)}
           onRefreshParent={() => fetchScan(true)}
         />
       )}
