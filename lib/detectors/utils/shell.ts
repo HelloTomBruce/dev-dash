@@ -19,7 +19,7 @@ function fetchLoginPath(): Promise<string | null> {
   const user = process.env.USER || "";
   return new Promise((resolve) => {
     exec(
-      `env -i HOME="${home}" USER="${user}" SHELL="/bin/zsh" /bin/zsh -ilc 'printf "__PATH__%s__END__" "$PATH"'`,
+      `env -i HOME="${home}" USER="${user}" SHELL="/bin/zsh" PATH="/usr/bin:/bin:/usr/sbin:/sbin" /bin/zsh -ilc 'printf "__PATH__%s__END__" "$PATH"'`,
       { timeout: 8000, windowsHide: true },
       (err, stdout) => {
         if (err) return resolve(null);
