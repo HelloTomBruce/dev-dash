@@ -490,4 +490,32 @@ export const actionExecutors: Record<string, ActionExecutor> = {
       throw e;
     }
   },
+
+  "port.kill": async (p) => {
+    const start = Date.now();
+    const pidStr = p?.pid;
+    if (!pidStr || !/^\d+$/.test(pidStr)) {
+      throw new Error("参数错误：必须提供有效的数字 PID");
+    }
+    const pid = parseInt(pidStr, 10);
+    if (pid <= 1) {
+      throw new Error("安全限制：禁止终止系统核心进程 (PID <= 1)");
+    }
+    if (pid === process.pid) {
+      throw new Error("安全限制：禁止终止 DevDash 自身的进程");
+    }
+
+    const signal = p?.force === "true" || p?.signal === "9" ? "-9" : "-15";
+    const cmd = `kill ${signal} ${pid}`;
+    const res = await run(cmd, 5000);
+
+    return {
+      ok: res.ok,
+      actionId: "port.kill",
+      command: cmd,
+      output: res.ok ? `已向进程 PID ${pid} 发送 ${signal === "-9" ? "SIGKILL (强制终止)" : "SIGTERM (优雅退出)"} 信号` : res.stdout,
+      error: res.ok ? null : (res.stderr || "终止进程失败，可能进程已退出或缺少权限"),
+      durationMs: Date.now() - start,
+    };
+  },
 };

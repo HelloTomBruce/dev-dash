@@ -77,6 +77,8 @@ export const ACTION_META: Record<string, ActionMeta> = {
   "nginx.test": { id: "nginx.test", label: "测试配置语法 (nginx -t)", level: "safe" },
   "nginx.reload": { id: "nginx.reload", label: "重新加载配置 (nginx -s reload)", level: "careful" },
   "nginx.save-conf": { id: "nginx.save-conf", label: "保存配置文件", level: "careful" },
+  // port inspector
+  "port.kill": { id: "port.kill", label: "终止进程释放端口", level: "careful" },
 };
 
 export interface ServiceActionRef {

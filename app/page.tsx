@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ToolCard } from "@/components/tool-card";
 import { InventoryDrawer } from "@/components/inventory-drawer";
+import { PortInspectorDrawer } from "@/components/port-inspector-drawer";
 import { CommandPalette, type PaletteItem } from "@/components/command-palette";
 import { CATEGORY_META, type Category, type ScanResult } from "@/lib/detectors/types";
 import { INVENTORY_META, type InventoryMeta } from "@/lib/inventories/meta";
@@ -31,6 +32,7 @@ export default function Home() {
   const [copied, setCopied] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [drawer, setDrawer] = useState<InventoryMeta | null>(null);
+  const [portDrawerOpen, setPortDrawerOpen] = useState(false);
   const [health, setHealth] = useState<Record<string, HealthCheckResult>>({});
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
@@ -326,6 +328,16 @@ export default function Home() {
         action: () => router.push(`/tools/${p.toolId}`),
       });
     }
+
+    // 常用系统与诊断
+    items.push({
+      id: "sys:ports",
+      label: "🔌 端口占用监控 (Port Inspector)",
+      sub: "实时查看监听端口、开发服务与进程释放",
+      group: "系统与诊断",
+      action: () => setPortDrawerOpen(true),
+    });
+
     return items;
   }, [data, packageIndex, router, handleCopy]);
 
@@ -378,6 +390,12 @@ export default function Home() {
           >
             ⌕ 搜索
             <kbd className="rounded border border-zinc-700 px-1 text-[10px]">⌘K</kbd>
+          </button>
+          <button
+            onClick={() => setPortDrawerOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            <span>🔌</span> 端口监控
           </button>
           <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-zinc-400">
             <input
@@ -518,6 +536,14 @@ export default function Home() {
       {/* 已装清单抽屉 */}
       {drawer && (
         <InventoryDrawer entry={drawer} onClose={() => setDrawer(null)} />
+      )}
+
+      {/* 端口占用监控抽屉 */}
+      {portDrawerOpen && (
+        <PortInspectorDrawer
+          onClose={() => setPortDrawerOpen(false)}
+          onRefreshParent={() => fetchScan(true)}
+        />
       )}
 
       {/* 操作执行结果弹窗 */}
