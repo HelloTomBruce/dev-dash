@@ -14,16 +14,20 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
   const [copied, setCopied] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/doctor");
+      const res = await fetch(`/api/doctor${force ? "?force=1" : ""}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json: DoctorScanResult = await res.json();
       setData(json);
       // 如果没有遮蔽项但有建议，默认切到建议
       if (json.shadowedBinaries.length === 0 && json.suggestions.length > 0) {
         setActiveTab("suggestions");
+      }
+      if (force) {
+        setToast({ msg: "环境体检已重新完成！", type: "ok" });
+        setTimeout(() => setToast(null), 2000);
       }
     } catch (e) {
       setToast({ msg: `环境体检失败: ${e}`, type: "err" });
@@ -98,7 +102,7 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => load()}
+              onClick={() => load(true)}
               disabled={loading}
               title="重新体检"
               className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white disabled:opacity-50"

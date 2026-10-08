@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { getLoginPath, run, extractVersion } from "@/lib/detectors/utils/shell";
+import { getLoginPath, resetLoginPath, run, extractVersion } from "@/lib/detectors/utils/shell";
 
 export interface PathEntry {
   index: number;
@@ -104,9 +104,13 @@ const KEY_BINARIES = [
   { name: "redis-server", label: "Redis", versionCmd: "redis-server --version" },
 ];
 
-export async function runEnvironmentDoctor(): Promise<DoctorScanResult> {
+export async function runEnvironmentDoctor(force = false): Promise<DoctorScanResult> {
   const t0 = Date.now();
   const home = os.homedir();
+
+  if (force) {
+    resetLoginPath();
+  }
 
   // 1. 获取登录 PATH
   const rawPathStr = (await getLoginPath()) || process.env.PATH || "";
