@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StarIcon } from "@phosphor-icons/react";
 import type { GhSearchType } from "@/lib/gh/types";
 
 const TYPES: Array<{ key: GhSearchType; label: string }> = [
@@ -29,7 +30,9 @@ function ResultLine({ item, type }: { item: Record<string, unknown>; type: GhSea
     return (
       <a href={String(item.url)} target="_blank" rel="noreferrer" className="block border-b border-zinc-800/60 px-4 py-2.5 last:border-0 hover:bg-zinc-900/60">
         <span className="font-mono text-sm text-emerald-400">{String(item.fullName)}</span>
-        <span className="ml-2 text-[11px] text-amber-400">★ {String(item.stargazersCount ?? 0)}</span>
+        <span className="ml-2 inline-flex items-center gap-0.5 text-[11px] text-amber-400">
+          <StarIcon size={11} weight="fill" /> {String(item.stargazersCount ?? 0)}
+        </span>
         {item.description ? (
           <p className="mt-0.5 truncate text-xs text-zinc-500">{String(item.description)}</p>
         ) : null}

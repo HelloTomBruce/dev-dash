@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { XIcon } from "@phosphor-icons/react";
 import type { ActionResult } from "@/lib/actions/registry";
 import type { TaskResult } from "@/lib/tasks/types";
 
@@ -89,7 +90,7 @@ export function ActionResultModal({
               disabled={isLoading}
               className="rounded-lg px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-40"
             >
-              ✕
+              <XIcon size={14} weight="bold" />
             </button>
           </div>
         </div>

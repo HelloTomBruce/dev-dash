@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackLink, InfoCard, useActionRunner } from "./shared";
 import { ActionResultModal } from "@/components/action-result-modal";
+import {
+  ArrowsClockwiseIcon,
+  XIcon,
+  CheckIcon,
+  CircleIcon,
+  FilePyIcon,
+} from "@phosphor-icons/react";
 import type { PythonOverviewResult, PythonRuntimeInfo, VirtualEnvInfo } from "@/lib/python/types";
 
 const POPULAR_MIRRORS = [
@@ -83,7 +90,7 @@ export function PythonPanel() {
           disabled={loading}
           className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:border-zinc-700 disabled:opacity-50"
         >
-          {loading ? "刷新中…" : "↻ 刷新"}
+          {loading ? "刷新中…" : <><ArrowsClockwiseIcon size={12} weight="bold" className="inline-block" /> 刷新</>}
         </button>
       </div>
 
@@ -91,7 +98,7 @@ export function PythonPanel() {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-3">
-            <span>🐍</span> Python 多环境与包管理
+            <FilePyIcon size={24} className="text-emerald-400" /> Python 多环境与包管理
             {defaultRuntime?.version && (
               <span className="rounded-full bg-emerald-500/10 px-3 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                 v{defaultRuntime.version}
@@ -179,7 +186,7 @@ export function PythonPanel() {
                   onClick={() => setSearch("")}
                   className="absolute right-2.5 top-2 text-xs text-zinc-500 hover:text-zinc-300"
                 >
-                  ✕
+                  <XIcon size={12} weight="bold" />
                 </button>
               )}
             </div>
@@ -243,7 +250,11 @@ export function PythonPanel() {
                       onClick={() => handleCopy(venv.venvPath, "已复制路径")}
                       className="rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-xs text-zinc-300 hover:border-zinc-700"
                     >
-                      {copied === venv.venvPath ? "✓" : "复制路径"}
+                      {copied === venv.venvPath ? (
+                        <CheckIcon size={12} weight="bold" className="text-emerald-400" />
+                      ) : (
+                        "复制路径"
+                      )}
                     </button>
 
                     <button
@@ -286,8 +297,8 @@ export function PythonPanel() {
                     {rt.version ? `Python ${rt.version}` : "Python"}
                   </span>
                   {rt.isDefault && (
-                    <span className="rounded bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.2 text-[10px] font-bold">
-                      🟢 默认生效
+                    <span className="flex items-center gap-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.2 text-[10px] font-bold">
+                      <CircleIcon size={7} weight="fill" /> 默认生效
                     </span>
                   )}
                   <span className="rounded bg-zinc-800 border border-zinc-700 px-1.5 py-0.2 text-[10px] text-zinc-300 uppercase">
@@ -301,7 +312,13 @@ export function PythonPanel() {
                 onClick={() => handleCopy(rt.path, "已复制路径")}
                 className="rounded border border-zinc-800 bg-zinc-800/60 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-700"
               >
-                {copied === rt.path ? "✓ 已复制" : "复制路径"}
+                {copied === rt.path ? (
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <CheckIcon size={12} weight="bold" /> 已复制
+                  </span>
+                ) : (
+                  "复制路径"
+                )}
               </button>
             </div>
           ))}
@@ -341,7 +358,11 @@ export function PythonPanel() {
                     >
                       <span className="font-semibold text-xs flex items-center justify-between w-full">
                         {m.name}
-                        {isCurrent && <span className="text-emerald-400">✓ 当前使用</span>}
+                        {isCurrent && (
+                          <span className="flex items-center gap-1 text-emerald-400">
+                            <CheckIcon size={12} weight="bold" /> 当前使用
+                          </span>
+                        )}
                       </span>
                       <span className="text-[10px] text-zinc-500 truncate w-full mt-1 font-mono">
                         {m.url || "官方源"}

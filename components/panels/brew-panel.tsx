@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { WarningIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface BrewPackage {
@@ -131,8 +132,8 @@ export function BrewDetailPanel() {
           {outdatedFormulae.length > 0 && (
             <section className="mt-8">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-amber-400">
-                  ⚠️ 可升级（{outdatedFormulae.length}）
+                <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-amber-400">
+                  <WarningIcon size={14} weight="fill" /> 可升级（{outdatedFormulae.length}）
                 </h2>
                 <PanelButton
                   label="全部升级"

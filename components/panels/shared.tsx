@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import type { ResultModalState } from "@/components/action-result-modal";
@@ -63,8 +64,11 @@ export function useActionRunner(onSuccess?: () => void | Promise<void>) {
 
 export function BackLink() {
   return (
-    <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
-      ← 返回仪表盘
+    <Link
+      href="/"
+      className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+    >
+      <ArrowLeftIcon size={12} weight="bold" /> 返回仪表盘
     </Link>
   );
 }

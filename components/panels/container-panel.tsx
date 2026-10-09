@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { PlayIcon, WarningIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface ContainerDetail {
@@ -87,9 +88,9 @@ export function ContainerDetailPanel() {
               <button
                 disabled={busy}
                 onClick={() => runAction({ actionId: "container.system.start", label: "启动容器系统" })}
-                className="rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
               >
-                ▶ 启动系统
+                <PlayIcon size={12} weight="fill" /> 启动系统
               </button>
             ))}
           <button
@@ -120,7 +121,7 @@ export function ContainerDetailPanel() {
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <InfoCard
               label="内核"
-              value={detail.kernelConfigured ? "✓ 已配置" : "✗ 未配置"}
+              value={detail.kernelConfigured ? "已配置" : "未配置"}
               accent={detail.kernelConfigured}
               warn={!detail.kernelConfigured}
             />
@@ -129,16 +130,19 @@ export function ContainerDetailPanel() {
               value={
                 running
                   ? `${detail.systemInfo?.containersRunning ?? detail.containers.length} / ${detail.systemInfo?.containersTotal ?? detail.containers.length}`
-                  : "—"
+                  : "未运行"
               }
             />
-            <InfoCard label="镜像" value={running ? String(detail.systemInfo?.imagesTotal ?? detail.images.length) : "—"} />
+            <InfoCard label="镜像" value={running ? String(detail.systemInfo?.imagesTotal ?? detail.images.length) : "未运行"} />
           </div>
 
           {!detail.kernelConfigured && (
-            <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
-              ⚠️ 未配置默认内核。首次运行容器前需执行：
-              <code className="ml-1 font-mono">container system kernel set --recommended</code>
+            <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+              <WarningIcon size={14} weight="fill" className="shrink-0" />
+              <span>
+                未配置默认内核。首次运行容器前需执行：
+                <code className="ml-1 font-mono">container system kernel set --recommended</code>
+              </span>
             </p>
           )}
 
@@ -146,7 +150,7 @@ export function ContainerDetailPanel() {
             <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
               <p className="text-zinc-400">容器系统未运行</p>
               <p className="mt-4 text-xs text-zinc-500">
-                点击右上角「▶ 启动系统」后可管理容器与镜像
+                点击右上角「启动系统」后可管理容器与镜像
               </p>
             </div>
           )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import type { ToolActionDef } from "@/lib/actions/meta";
 
 const LEVEL_DOT: Record<string, string> = {
@@ -48,7 +49,7 @@ export function ActionMenu({
         title="操作"
         className="shrink-0 rounded-md px-1.5 py-0.5 text-sm text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-40"
       >
-        ⋯
+        <DotsThreeVerticalIcon size={14} weight="bold" />
       </button>
       {open && (
         <div className="absolute right-0 top-7 z-30 w-56 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl">

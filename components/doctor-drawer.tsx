@@ -1,6 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  StethoscopeIcon,
+  ArrowsClockwiseIcon,
+  XIcon,
+  ConfettiIcon,
+  CircleIcon,
+  XCircleIcon,
+  WarningIcon,
+  CheckIcon,
+  SparkleIcon,
+  LightbulbIcon,
+  WrenchIcon,
+} from "@phosphor-icons/react";
 import type { BinaryShadow, DoctorScanResult, PathEntry } from "@/lib/doctor/scanner";
 
 interface DoctorDrawerProps {
@@ -92,7 +105,7 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
           <div>
             <div className="flex items-center gap-2.5">
               <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                <span>🩺</span> 开发环境体检与冲突诊断
+                <StethoscopeIcon size={18} className="text-emerald-400" /> 开发环境体检与冲突诊断
               </h2>
               {data && getScoreBadge(data.healthScore)}
             </div>
@@ -107,13 +120,13 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
               title="重新体检"
               className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white disabled:opacity-50"
             >
-              {loading ? "体检中…" : "↻ 重新体检"}
+              {loading ? "体检中…" : <><ArrowsClockwiseIcon size={12} weight="bold" className="inline-block" /> 重新体检</>}
             </button>
             <button
               onClick={onClose}
               className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
             >
-              ✕
+              <XIcon size={14} weight="bold" />
             </button>
           </div>
         </div>
@@ -172,8 +185,9 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
           {!loading && activeTab === "shadows" && data && (
             <div className="space-y-3">
               {data.shadowedBinaries.length === 0 ? (
-                <div className="py-16 text-center text-xs text-zinc-500">
-                  🎉 未发现多版本冲突或遮蔽现象，所有常用工具均单一生效！
+                <div className="py-16 text-center text-xs text-zinc-500 flex items-center justify-center gap-2">
+                  <ConfettiIcon size={16} className="text-emerald-400" />
+                  未发现多版本冲突或遮蔽现象，所有常用工具均单一生效！
                 </div>
               ) : (
                 data.shadowedBinaries.map((sh: BinaryShadow) => (
@@ -196,7 +210,9 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                     <div className="rounded-lg bg-emerald-950/30 border border-emerald-800/50 p-3 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-emerald-400 font-bold text-xs">🟢 正在生效 (Active)</span>
+                          <span className="text-emerald-400 font-bold text-xs flex items-center gap-1.5">
+                            <CircleIcon size={8} weight="fill" /> 正在生效 (Active)
+                          </span>
                           <span className="rounded bg-emerald-900/50 text-emerald-300 px-1.5 py-0.2 text-[10px]">
                             {sh.active.source}
                           </span>
@@ -213,7 +229,13 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                           onClick={() => handleCopy(sh.active.path, "已复制路径")}
                           className="text-zinc-400 hover:text-zinc-200 ml-2"
                         >
-                          {copied === sh.active.path ? "✓ 已复制" : "复制"}
+                          {copied === sh.active.path ? (
+                            <span className="flex items-center gap-1 text-emerald-400">
+                              <CheckIcon size={12} weight="bold" /> 已复制
+                            </span>
+                          ) : (
+                            "复制"
+                          )}
                         </button>
                       </div>
                     </div>
@@ -228,7 +250,9 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                         >
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="text-zinc-400 font-medium">⚪️ {inst.source}</span>
+                              <span className="text-zinc-400 font-medium flex items-center gap-1.5">
+                                <CircleIcon size={8} weight="fill" className="text-zinc-500" /> {inst.source}
+                              </span>
                               {inst.version && (
                                 <span className="font-mono text-[11px] text-zinc-400">
                                   v{inst.version}
@@ -243,7 +267,13 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                             onClick={() => handleCopy(inst.path, "已复制路径")}
                             className="text-zinc-400 hover:text-zinc-200 text-xs ml-2 shrink-0"
                           >
-                            {copied === inst.path ? "✓ 已复制" : "复制"}
+                            {copied === inst.path ? (
+                              <span className="flex items-center gap-1 text-emerald-400">
+                                <CheckIcon size={12} weight="bold" /> 已复制
+                              </span>
+                            ) : (
+                              "复制"
+                            )}
                           </button>
                         </div>
                       ))}
@@ -286,11 +316,17 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                       </div>
                       <div className="flex items-center gap-2 text-[11px]">
                         {!p.exists ? (
-                          <span className="text-red-400 font-semibold">❌ 目录不存在 (失效)</span>
+                          <span className="text-red-400 font-semibold flex items-center gap-1">
+                            <XCircleIcon size={13} weight="fill" /> 目录不存在 (失效)
+                          </span>
                         ) : p.isDuplicate ? (
-                          <span className="text-amber-400 font-semibold">⚠️ 重复出现的路径</span>
+                          <span className="text-amber-400 font-semibold flex items-center gap-1">
+                            <WarningIcon size={13} weight="fill" /> 重复出现的路径
+                          </span>
                         ) : (
-                          <span className="text-emerald-400">✓ 正常目录</span>
+                          <span className="text-emerald-400 flex items-center gap-1">
+                            <CheckIcon size={13} weight="bold" /> 正常目录
+                          </span>
                         )}
                         {p.exists && (
                           <span className="text-zinc-400">
@@ -305,7 +341,13 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                     onClick={() => handleCopy(p.rawPath, "已复制 PATH 路径")}
                     className="text-zinc-400 hover:text-zinc-200 shrink-0 px-2 py-1 rounded border border-zinc-800 hover:border-zinc-700 text-[11px]"
                   >
-                    {copied === p.rawPath ? "✓ 已复制" : "复制"}
+                    {copied === p.rawPath ? (
+                      <span className="flex items-center gap-1 text-emerald-400">
+                        <CheckIcon size={12} weight="bold" /> 已复制
+                      </span>
+                    ) : (
+                      "复制"
+                    )}
                   </button>
                 </div>
               ))}
@@ -316,8 +358,9 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
           {!loading && activeTab === "suggestions" && data && (
             <div className="space-y-3">
               {data.suggestions.length === 0 ? (
-                <div className="py-16 text-center text-xs text-zinc-500">
-                  ✨ 完美！当前未发现任何需要优化的环境配置。
+                <div className="py-16 text-center text-xs text-zinc-500 flex items-center justify-center gap-2">
+                  <SparkleIcon size={16} className="text-emerald-400" />
+                  完美！当前未发现任何需要优化的环境配置。
                 </div>
               ) : (
                 data.suggestions.map((s) => (
@@ -326,12 +369,18 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
                     className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 space-y-2"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{s.level === "warning" ? "⚠️" : "💡"}</span>
+                      {s.level === "warning" ? (
+                        <WarningIcon size={16} weight="fill" className="shrink-0 text-amber-400" />
+                      ) : (
+                        <LightbulbIcon size={16} weight="fill" className="shrink-0 text-emerald-400" />
+                      )}
                       <h4 className="font-semibold text-sm text-zinc-200">{s.title}</h4>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed">{s.detail}</p>
                     <div className="mt-2 rounded bg-zinc-950/80 border border-zinc-800/60 p-2.5 text-xs text-emerald-300 font-mono">
-                      <span className="text-zinc-400 font-sans block mb-1">🛠 优化建议：</span>
+                      <span className="text-zinc-400 font-sans flex items-center gap-1 mb-1">
+                        <WrenchIcon size={12} /> 优化建议：
+                      </span>
                       {s.fixTip}
                     </div>
                   </div>

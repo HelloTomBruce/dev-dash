@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 
 export interface PaletteItem {
   id: string;
@@ -99,7 +100,7 @@ function PaletteInner({
       <button aria-label="关闭" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-2xl">
         <div className="flex items-center gap-2 border-b border-zinc-800 px-4">
-          <span className="text-zinc-500">⌕</span>
+          <MagnifyingGlassIcon size={14} className="text-zinc-500" />
           <input
             ref={inputRef}
             value={query}

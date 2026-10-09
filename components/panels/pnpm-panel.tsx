@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { WarningIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface PnpmDetail {
@@ -80,7 +81,9 @@ export function PnpmDetailPanel() {
           {/* 配置诊断 */}
           {detail.configIssue && (
             <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-950/30 px-4 py-3">
-              <p className="text-xs font-medium text-amber-300">⚠️ 全局目录配置问题</p>
+              <p className="text-xs font-medium text-amber-300 flex items-center gap-1.5">
+              <WarningIcon size={14} weight="fill" /> 全局目录配置问题
+            </p>
               <p className="mt-1 font-mono text-[11px] text-amber-200/80">{detail.configIssue}</p>
               <p className="mt-2 text-[11px] text-zinc-500">
                 提示：执行 <code className="text-zinc-300">pnpm setup</code> 并重启 shell 可修复；当前 pnpm 全局装的包不会出现在 PATH 中。

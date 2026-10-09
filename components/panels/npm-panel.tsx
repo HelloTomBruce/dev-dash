@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { WarningIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface NpmPackage {
@@ -123,8 +124,8 @@ export function NpmDetailPanel() {
           {/* 过期包 */}
           {outdated.length > 0 && (
             <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold text-amber-400">
-                ⚠️ 可升级（{outdated.length}）
+              <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-amber-400">
+                <WarningIcon size={14} weight="fill" /> 可升级（{outdated.length}）
               </h2>
               <div className="overflow-hidden rounded-xl border border-amber-500/30">
                 {outdated.map((p) => (

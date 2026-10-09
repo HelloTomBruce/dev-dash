@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { GhOverview } from "@/lib/gh/types";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { MineView } from "./mine";
 import { RepoView } from "./repo-view";
 import { SearchView } from "./search-view";
@@ -46,8 +47,11 @@ export function GhPanel() {
   if (error) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
-          ← 返回仪表盘
+        <Link
+          href="/"
+          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+        >
+          <ArrowLeftIcon size={12} weight="bold" /> 返回仪表盘
         </Link>
         <div className="mt-6 rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-sm text-red-400">
           {error}
@@ -68,8 +72,11 @@ export function GhPanel() {
   if (!overview.auth.loggedIn) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
-          ← 返回仪表盘
+        <Link
+          href="/"
+          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+        >
+          <ArrowLeftIcon size={12} weight="bold" /> 返回仪表盘
         </Link>
         <div className="mt-8 rounded-xl border border-amber-500/40 bg-amber-950/20 p-6">
           <h1 className="text-lg font-semibold text-amber-400">gh 未登录</h1>
@@ -92,8 +99,11 @@ export function GhPanel() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300">
-        ← 返回仪表盘
+      <Link
+        href="/"
+        className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+      >
+        <ArrowLeftIcon size={12} weight="bold" /> 返回仪表盘
       </Link>
 
       <header className="mt-4 flex flex-wrap items-center justify-between gap-3">

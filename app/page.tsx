@@ -8,6 +8,8 @@ import { PortInspectorDrawer } from "@/components/port-inspector-drawer";
 import { DevCleanerDrawer } from "@/components/dev-cleaner-drawer";
 import { DoctorDrawer } from "@/components/doctor-drawer";
 import { CommandPalette, type PaletteItem } from "@/components/command-palette";
+import { CategoryIcon } from "@/components/icons";
+import { PlugsIcon, BroomIcon, StethoscopeIcon, MagnifyingGlassIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 import { CATEGORY_META, type Category, type ScanResult } from "@/lib/detectors/types";
 import { INVENTORY_META, type InventoryMeta } from "@/lib/inventories/meta";
 import { ACTION_META, COMMON_ACTIONS, DETAIL_PAGES, SERVICE_ACTIONS, TOOL_ACTIONS, type ToolActionDef } from "@/lib/actions/meta";
@@ -336,21 +338,21 @@ export default function Home() {
     // 常用系统与诊断
     items.push({
       id: "sys:ports",
-      label: "🔌 端口占用监控 (Port Inspector)",
+      label: "端口占用监控 (Port Inspector)",
       sub: "实时查看监听端口、开发服务与进程释放",
       group: "系统与诊断",
       action: () => setPortDrawerOpen(true),
     });
     items.push({
       id: "sys:cleaner",
-      label: "🧹 开发磁盘清理助手 (Dev Cleaner)",
+      label: "开发磁盘清理助手 (Dev Cleaner)",
       sub: "扫描并一键清理包管理器临时下载与构建缓存",
       group: "系统与诊断",
       action: () => setCleanerDrawerOpen(true),
     });
     items.push({
       id: "sys:doctor",
-      label: "🩺 开发环境体检与冲突诊断 (Environment Doctor)",
+      label: "开发环境体检与冲突诊断 (Environment Doctor)",
       sub: "检测 PATH 优先级、多版本覆盖遮蔽与失效环境变量",
       group: "系统与诊断",
       action: () => setDoctorDrawerOpen(true),
@@ -406,26 +408,26 @@ export default function Home() {
             onClick={() => setPaletteOpen(true)}
             className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
           >
-            ⌕ 搜索
+            <MagnifyingGlassIcon size={14} weight="regular" /> 搜索
             <kbd className="rounded border border-zinc-700 px-1 text-[10px]">⌘K</kbd>
           </button>
           <button
             onClick={() => setPortDrawerOpen(true)}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
-            <span>🔌</span> 端口监控
+            <PlugsIcon size={15} weight="regular" /> 端口监控
           </button>
           <button
             onClick={() => setCleanerDrawerOpen(true)}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
-            <span>🧹</span> 磁盘清理
+            <BroomIcon size={15} weight="regular" /> 磁盘清理
           </button>
           <button
             onClick={() => setDoctorDrawerOpen(true)}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
-            <span>🩺</span> 环境体检
+            <StethoscopeIcon size={15} weight="regular" /> 环境体检
           </button>
           <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-zinc-400">
             <input
@@ -446,9 +448,9 @@ export default function Home() {
           <a
             href="/api/export/json"
             download
-            className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
           >
-            ↓ 导出
+            <DownloadSimpleIcon size={15} weight="regular" /> 导出
           </a>
         </div>
       </header>
@@ -509,7 +511,7 @@ export default function Home() {
           return (
             <section key={cat} className="mt-8">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-400">
-                <span>{CATEGORY_META[cat].icon}</span>
+                <CategoryIcon name={CATEGORY_META[cat].icon} size={15} className="text-zinc-500" />
                 {CATEGORY_META[cat].label}
                 <span className="text-xs font-normal text-zinc-600">
                   {tools.filter((t) => t.status === "ok").length}/{tools.length}

@@ -3,6 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackLink, InfoCard, useActionRunner } from "./shared";
 import { ActionResultModal } from "@/components/action-result-modal";
+import {
+  ArrowsClockwiseIcon,
+  GitBranchIcon,
+  KeyIcon,
+  XIcon,
+  WarningIcon,
+  CheckIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowUpRightIcon,
+  LockKeyIcon,
+  CircleIcon,
+  ClipboardTextIcon,
+} from "@phosphor-icons/react";
 import type { GitOverviewResult, LocalRepoInfo, SshKeyInfo } from "@/lib/git/types";
 
 export function GitPanel() {
@@ -108,7 +122,7 @@ export function GitPanel() {
           disabled={loading}
           className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:border-zinc-700 disabled:opacity-50"
         >
-          {loading ? "刷新中…" : "↻ 刷新"}
+          {loading ? "刷新中…" : <><ArrowsClockwiseIcon size={12} weight="bold" className="inline-block" /> 刷新</>}
         </button>
       </div>
 
@@ -116,7 +130,7 @@ export function GitPanel() {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-3">
-            <span>🌿</span> Git 仓库与环境配置
+            <GitBranchIcon size={22} className="text-emerald-400" /> Git 仓库与环境配置
             {data?.config.version && (
               <span className="rounded-full bg-emerald-500/10 px-3 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                 v{data.config.version}
@@ -137,9 +151,9 @@ export function GitPanel() {
               })
             }
             disabled={busy}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:border-zinc-500 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:border-zinc-500 transition-colors"
           >
-            🔑 测试 GitHub SSH 连通
+            <KeyIcon size={13} /> 测试 GitHub SSH 连通
           </button>
         </div>
       </div>
@@ -221,7 +235,7 @@ export function GitPanel() {
                   onClick={() => setSearch("")}
                   className="absolute right-2.5 top-2 text-xs text-zinc-500 hover:text-zinc-300"
                 >
-                  ✕
+                  <XIcon size={12} weight="bold" />
                 </button>
               )}
             </div>
@@ -293,8 +307,8 @@ export function GitPanel() {
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="rounded bg-zinc-800/90 border border-zinc-700 px-2 py-0.5 text-xs font-mono font-medium text-emerald-300">
-                        🌿 {repo.branch}
+                      <span className="flex items-center gap-1 rounded bg-zinc-800/90 border border-zinc-700 px-2 py-0.5 text-xs font-mono font-medium text-emerald-300">
+                        <GitBranchIcon size={11} /> {repo.branch}
                       </span>
                     </div>
                   </div>
@@ -302,23 +316,24 @@ export function GitPanel() {
                   {/* 状态徽章 */}
                   <div className="flex items-center gap-2 flex-wrap text-xs pt-1">
                     {repo.isDirty ? (
-                      <span className="rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 text-[11px] font-medium">
-                        ⚠️ {repo.modifiedCount} 个文件修改 {repo.untrackedCount > 0 ? `+ ${repo.untrackedCount} 未追踪` : ""}
+                      <span className="flex items-center gap-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 text-[11px] font-medium">
+                        <WarningIcon size={11} weight="fill" />
+                        {repo.modifiedCount} 个文件修改 {repo.untrackedCount > 0 ? `+ ${repo.untrackedCount} 未追踪` : ""}
                       </span>
                     ) : (
-                      <span className="rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 px-2 py-0.5 text-[11px]">
-                        ✓ 工作区干净
+                      <span className="flex items-center gap-1 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 px-2 py-0.5 text-[11px]">
+                        <CheckIcon size={11} weight="bold" /> 工作区干净
                       </span>
                     )}
 
                     {repo.aheadCount > 0 && (
-                      <span className="rounded bg-blue-950/60 text-blue-300 border border-blue-800/50 px-2 py-0.5 text-[11px] font-medium">
-                        ↑ {repo.aheadCount} 个 commit 待推送
+                      <span className="flex items-center gap-1 rounded bg-blue-950/60 text-blue-300 border border-blue-800/50 px-2 py-0.5 text-[11px] font-medium">
+                        <ArrowUpIcon size={11} weight="bold" /> {repo.aheadCount} 个 commit 待推送
                       </span>
                     )}
                     {repo.behindCount > 0 && (
-                      <span className="rounded bg-purple-950/60 text-purple-300 border border-purple-800/50 px-2 py-0.5 text-[11px]">
-                        ↓ 落后远程 {repo.behindCount} 个 commit
+                      <span className="flex items-center gap-1 rounded bg-purple-950/60 text-purple-300 border border-purple-800/50 px-2 py-0.5 text-[11px]">
+                        <ArrowDownIcon size={11} weight="bold" /> 落后远程 {repo.behindCount} 个 commit
                       </span>
                     )}
                   </div>
@@ -348,16 +363,22 @@ export function GitPanel() {
                       onClick={() => handleCopy(repo.path, "已复制路径")}
                       className="rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300 hover:border-zinc-700"
                     >
-                      {copied === repo.path ? "✓ 已复制" : "复制路径"}
+                      {copied === repo.path ? (
+                        <span className="flex items-center gap-1 text-emerald-400">
+                          <CheckIcon size={12} weight="bold" /> 已复制
+                        </span>
+                      ) : (
+                        "复制路径"
+                      )}
                     </button>
                     {repo.remoteUrl && repo.remoteUrl.startsWith("http") && (
                       <a
                         href={repo.remoteUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300 hover:text-white"
+                        className="flex items-center gap-1 rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300 hover:text-white"
                       >
-                        ↗ 远程
+                        <ArrowUpRightIcon size={11} /> 远程
                       </a>
                     )}
                   </div>
@@ -374,10 +395,15 @@ export function GitPanel() {
           <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
             <div>
               <h3 className="font-semibold text-sm text-zinc-200 flex items-center gap-2">
-                <span>🔐</span> SSH Agent 状态: {data?.sshAgentRunning ? (
-                  <span className="text-emerald-400 font-medium">🟢 运行中</span>
+                <LockKeyIcon size={16} className="text-zinc-400" /> SSH Agent 状态:{" "}
+                {data?.sshAgentRunning ? (
+                  <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                    <CircleIcon size={8} weight="fill" /> 运行中
+                  </span>
                 ) : (
-                  <span className="text-zinc-400">⚪️ 未运行</span>
+                  <span className="flex items-center gap-1 text-zinc-400">
+                    <CircleIcon size={8} weight="fill" className="text-zinc-600" /> 未运行
+                  </span>
                 )}
               </h3>
               <p className="mt-0.5 text-xs text-zinc-400">
@@ -435,9 +461,17 @@ export function GitPanel() {
 
                     <button
                       onClick={() => handleCopy(k.publicKey, "已复制公钥内容")}
-                      className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors shrink-0"
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors shrink-0"
                     >
-                      {copied === k.publicKey ? "✓ 已复制" : "📋 复制公钥"}
+                      {copied === k.publicKey ? (
+                        <>
+                          <CheckIcon size={12} weight="bold" /> 已复制
+                        </>
+                      ) : (
+                        <>
+                          <ClipboardTextIcon size={12} /> 复制公钥
+                        </>
+                      )}
                     </button>
                   </div>
 

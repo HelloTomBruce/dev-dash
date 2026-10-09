@@ -6,16 +6,25 @@ export type Category =
   | "database"
   | "base-tool";
 
+export type CategoryIconKey =
+  | "runtime"
+  | "version-manager"
+  | "package-manager"
+  | "container"
+  | "database"
+  | "base-tool";
+
+/** 分类图标只存 key，渲染由 components/icons.tsx 的 CategoryIcon 统一映射到 Phosphor 图标 */
 export const CATEGORY_META: Record<
   Category,
-  { label: string; icon: string; order: number }
+  { label: string; icon: CategoryIconKey; order: number }
 > = {
-  runtime: { label: "语言运行时", icon: "⚡", order: 1 },
-  "version-manager": { label: "版本管理器", icon: "🧭", order: 2 },
-  "package-manager": { label: "包管理器", icon: "📦", order: 3 },
-  container: { label: "容器", icon: "🐳", order: 4 },
-  database: { label: "数据库", icon: "🗄️", order: 5 },
-  "base-tool": { label: "基础工具", icon: "🔧", order: 6 },
+  runtime: { label: "语言运行时", icon: "runtime", order: 1 },
+  "version-manager": { label: "版本管理器", icon: "version-manager", order: 2 },
+  "package-manager": { label: "包管理器", icon: "package-manager", order: 3 },
+  container: { label: "容器", icon: "container", order: 4 },
+  database: { label: "数据库", icon: "database", order: 5 },
+  "base-tool": { label: "基础工具", icon: "base-tool", order: 6 },
 };
 
 export type ToolStatus = "ok" | "not-found" | "error";

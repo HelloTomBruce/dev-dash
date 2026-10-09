@@ -2,6 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import {
+  PlayIcon,
+  CheckIcon,
+  XIcon,
+  GlobeIcon,
+  NotePencilIcon,
+  ClipboardTextIcon,
+  GearIcon,
+  ArrowUpRightIcon,
+  FolderOpenIcon,
+  FloppyDiskIcon,
+  ArrowsClockwiseIcon,
+  CircleIcon,
+} from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface NginxLocation {
@@ -256,9 +270,9 @@ export function NginxDetailPanel() {
                     params: { formula: "nginx" },
                   })
                 }
-                className="rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
               >
-                ▶ 启动
+                <PlayIcon size={12} weight="fill" /> 启动
               </button>
             )
           )}
@@ -304,11 +318,11 @@ export function NginxDetailPanel() {
         />
         <InfoCard
           label="Server 站点数"
-          value={detail ? `${detail.servers.length} 个站点配置` : "—"}
+          value={detail ? `${detail.servers.length} 个站点配置` : "-"}
         />
         <InfoCard
           label="主配置文件"
-          value={detail?.confPath ? "nginx.conf" : "—"}
+          value={detail?.confPath ? "nginx.conf" : "-"}
           mono
         />
       </section>
@@ -323,8 +337,16 @@ export function NginxDetailPanel() {
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="font-semibold">
-              {detail.testResult.ok ? "✓ Nginx 配置语法测试正常 (nginx -t)" : "✕ Nginx 配置语法错误"}
+            <span className="flex items-center gap-1.5 font-semibold">
+              {detail.testResult.ok ? (
+                <>
+                  <CheckIcon size={13} weight="bold" /> Nginx 配置语法测试正常 (nginx -t)
+                </>
+              ) : (
+                <>
+                  <XIcon size={13} weight="bold" /> Nginx 配置语法错误
+                </>
+              )}
             </span>
             <span className="text-[10px] text-zinc-500">语法校验状态</span>
           </div>
@@ -338,43 +360,43 @@ export function NginxDetailPanel() {
       <div className="mt-6 flex border-b border-zinc-800">
         <button
           onClick={() => setActiveTab("sites")}
-          className={`px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
             activeTab === "sites"
               ? "border-emerald-500 text-emerald-400"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
-          🌐 站点与路由 ({detail?.servers.length ?? 0})
+          <GlobeIcon size={14} /> 站点与路由 ({detail?.servers.length ?? 0})
         </button>
         <button
           onClick={() => setActiveTab("editor")}
-          className={`px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
             activeTab === "editor"
               ? "border-emerald-500 text-emerald-400"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
-          📝 配置文件 ({detail?.configFiles.length ?? 0})
+          <NotePencilIcon size={14} /> 配置文件 ({detail?.configFiles.length ?? 0})
         </button>
         <button
           onClick={() => setActiveTab("logs")}
-          className={`px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
             activeTab === "logs"
               ? "border-emerald-500 text-emerald-400"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
-          📋 运行日志
+          <ClipboardTextIcon size={14} /> 运行日志
         </button>
         <button
           onClick={() => setActiveTab("info")}
-          className={`px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
             activeTab === "info"
               ? "border-emerald-500 text-emerald-400"
               : "border-transparent text-zinc-400 hover:text-zinc-200"
           }`}
         >
-          ⚙️ 进程与编译参数
+          <GearIcon size={14} /> 进程与编译参数
         </button>
       </div>
 
@@ -420,7 +442,7 @@ export function NginxDetailPanel() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-white"
                       >
-                        ↗ 打开 {openUrl}
+                        <ArrowUpRightIcon size={11} /> 打开 {openUrl}
                       </a>
                     </div>
                   </div>
@@ -516,23 +538,23 @@ export function NginxDetailPanel() {
                     params: { dir: detail?.confDir ?? "/opt/homebrew/etc/nginx" },
                   })
                 }
-                className="rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-white"
+                className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-white"
               >
-                📂 打开所在目录
+                <FolderOpenIcon size={13} /> 打开所在目录
               </button>
               <button
                 disabled={fileLoading || !isDirty}
                 onClick={() => handleSaveConfig(false)}
-                className="rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-40"
               >
-                💾 保存配置
+                <FloppyDiskIcon size={13} /> 保存配置
               </button>
               <button
                 disabled={fileLoading || !isDirty}
                 onClick={() => handleSaveConfig(true)}
-                className="rounded bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-40"
               >
-                ⚡ 保存并重载
+                <ArrowsClockwiseIcon size={13} weight="bold" /> 保存并重载
               </button>
             </div>
           </div>
@@ -566,7 +588,9 @@ export function NginxDetailPanel() {
           <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
             <span>
               {isDirty ? (
-                <span className="text-amber-400">● 存在未保存修改</span>
+                <span className="flex items-center gap-1 text-amber-400">
+                  <CircleIcon size={8} weight="fill" /> 存在未保存修改
+                </span>
               ) : (
                 "与磁盘文件一致"
               )}
@@ -604,9 +628,9 @@ export function NginxDetailPanel() {
             </div>
             <button
               onClick={load}
-              className="rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500"
+              className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500"
             >
-              🔄 刷新日志
+              <ArrowsClockwiseIcon size={12} weight="bold" /> 刷新日志
             </button>
           </div>
 

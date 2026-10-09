@@ -11,12 +11,12 @@ export function OverviewTab({ overview }: { overview: GhOverview }) {
         <InfoCard label="扩展" value={String(extensions.length)} />
         <InfoCard
           label="API 配额"
-          value={rateLimit ? `${rateLimit.remaining}/${rateLimit.limit}` : "—"}
-          warn={!!rateLimit && rateLimit.remaining < 500}
+          value={rateLimit ? `${rateLimit.remaining}/${rateLimit.limit}` : "-"}
+          warn={rateLimit != null && rateLimit.remaining < 500}
         />
         <InfoCard
           label="配额重置"
-          value={rateLimit ? new Date(rateLimit.resetAt * 1000).toLocaleTimeString() : "—"}
+          value={rateLimit ? new Date(rateLimit.resetAt * 1000).toLocaleTimeString() : "-"}
         />
       </div>
 

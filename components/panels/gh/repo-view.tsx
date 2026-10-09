@@ -12,19 +12,20 @@ import type {
 } from "@/lib/gh/types";
 import { PanelButton } from "../shared";
 import { useGhActionRunner } from "./action-runner";
+import { CircleIcon, StarIcon } from "@phosphor-icons/react";
 
 type SubTab = "prs" | "issues" | "runs";
 
 function ChecksBadge({ state }: { state: GhChecksState }) {
   if (!state) return null;
   const map = {
-    success: { dot: "🟢", text: "text-emerald-400" },
-    failure: { dot: "🔴", text: "text-red-400" },
-    pending: { dot: "🟡", text: "text-amber-400" },
+    success: { cls: "text-emerald-400", title: "checks: success" },
+    failure: { cls: "text-red-400", title: "checks: failure" },
+    pending: { cls: "text-amber-400", title: "checks: pending" },
   } as const;
   return (
-    <span className={`shrink-0 text-[11px] ${map[state].text}`} title={`checks: ${state}`}>
-      {map[state].dot}
+    <span className="shrink-0 text-[11px]" title={map[state].title}>
+      <CircleIcon size={9} weight="fill" className={map[state].cls} />
     </span>
   );
 }
@@ -166,17 +167,17 @@ function RunRow({ run, repo, busy, onAction }: {
   busy: boolean;
   onAction: (opts: { actionId: string; label: string; params: Record<string, string>; targetText?: string; level?: "careful" | "dangerous" }) => void;
 }) {
-  const icon =
+  const stateCls =
     run.status !== "completed"
-      ? "🟡"
+      ? "text-amber-400"
       : run.conclusion === "success"
-        ? "🟢"
+        ? "text-emerald-400"
         : run.conclusion === "cancelled" || run.conclusion === "skipped"
-          ? "⚪"
-          : "🔴";
+          ? "text-zinc-500"
+          : "text-red-400";
   return (
     <div className="flex items-center gap-2 border-b border-zinc-800/60 px-4 py-2.5 last:border-0">
-      <span className="shrink-0">{icon}</span>
+      <CircleIcon size={9} weight="fill" className={`shrink-0 ${stateCls}`} />
       <div className="min-w-0 flex-1">
         <a href={run.url} target="_blank" rel="noreferrer" className="truncate text-sm text-zinc-200 hover:text-emerald-400">
           {run.displayTitle}
@@ -278,14 +279,19 @@ export function RepoView() {
           {filtered.map((r) => (
             <option key={r.fullName} value={r.fullName}>
               {r.fullName}
-              {r.isPrivate ? " 🔒" : ""}
-              {r.isFork ? " 🍴" : ""}
+              {r.isPrivate ? " (私有)" : ""}
+              {r.isFork ? " (fork)" : ""}
             </option>
           ))}
         </select>
         {detail?.repo && (
-          <span className="text-xs text-zinc-500">
-            ★ {detail.repo.stars} · 默认分支 {detail.repo.defaultBranch}
+          <span className="flex items-center gap-3 text-xs text-zinc-500">
+            <span className="flex items-center gap-1">
+              <StarIcon size={11} weight="fill" className="text-amber-400" /> {detail.repo.stars}
+            </span>
+            <span className="flex items-center gap-1">
+              默认分支 <span className="font-mono text-zinc-400">{detail.repo.defaultBranch}</span>
+            </span>
           </span>
         )}
       </div>

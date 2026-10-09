@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { PlayIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface PsqlDetail {
@@ -102,9 +103,9 @@ export function PsqlDetailPanel() {
                 onClick={() =>
                   runAction({ actionId: "brew.services.start", label: "启动服务", params: { formula: "postgresql@17" } })
                 }
-                className="rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
               >
-                ▶ 启动
+                <PlayIcon size={12} weight="fill" /> 启动
               </button>
             )
           )}
@@ -134,7 +135,7 @@ export function PsqlDetailPanel() {
         <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
           <p className="text-zinc-400">PostgreSQL 服务未运行</p>
           <p className="mt-1 font-mono text-xs text-zinc-600">{detail.detail}</p>
-          <p className="mt-4 text-xs text-zinc-500">点击右上角「▶ 启动」启动服务后查看数据库信息</p>
+          <p className="mt-4 text-xs text-zinc-500">点击右上角「启动」按钮启动服务后查看数据库信息</p>
         </div>
       )}
 
@@ -142,10 +143,10 @@ export function PsqlDetailPanel() {
         <>
           {/* 概要 */}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <InfoCard label="端口" value={detail.port ?? "—"} accent />
+            <InfoCard label="端口" value={detail.port ?? "-"} accent />
             <InfoCard label="活动连接" value={String(detail.connections ?? 0)} />
             <InfoCard label="数据库" value={String(detail.databases?.length ?? 0)} />
-            <InfoCard label="数据目录" value={detail.dataDir ?? "—"} mono />
+            <InfoCard label="数据目录" value={detail.dataDir ?? "-"} mono />
           </div>
 
           {/* 数据库列表 */}

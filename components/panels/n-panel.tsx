@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { WarningIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface NDetail {
@@ -73,13 +74,14 @@ export function NDetailPanel() {
             <InfoCard label="版本目录" value={detail.versionsDir} mono />
             <InfoCard
               label="目录可写"
-              value={detail.writable ? "✓ 可写" : "✗ 需 sudo"}
+              value={detail.writable ? "可写" : "需 sudo"}
               warn={!detail.writable}
             />
           </div>
           {!detail.writable && (
-            <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
-              ⚠️ 版本目录不可写，安装/切换/删除操作可能因权限失败（n 默认写入 {detail.prefix}）
+            <p className="mt-3 flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+              <WarningIcon size={14} weight="fill" className="shrink-0" />
+              版本目录不可写，安装/切换/删除操作可能因权限失败（n 默认写入 {detail.prefix}）
             </p>
           )}
 
@@ -106,7 +108,7 @@ export function NDetailPanel() {
                     </span>
                   )}
                   <span className="ml-auto font-mono text-xs text-zinc-500">
-                    {v.size ?? "—"}
+                    {v.size ?? "-"}
                   </span>
                   <div className="flex gap-1.5">
                     {!v.current && (

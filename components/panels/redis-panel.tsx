@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ActionResultModal } from "@/components/action-result-modal";
+import { PlayIcon } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
 
 interface RedisDetail {
@@ -105,9 +106,9 @@ export function RedisDetailPanel() {
                 onClick={() =>
                   runAction({ actionId: "brew.services.start", label: "启动服务", params: { formula: "redis" } })
                 }
-                className="rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-600/50 bg-emerald-600/15 px-4 py-1.5 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
               >
-                ▶ 启动
+                <PlayIcon size={12} weight="fill" /> 启动
               </button>
             )
           )}
@@ -137,7 +138,7 @@ export function RedisDetailPanel() {
         <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
           <p className="text-zinc-400">Redis 服务未运行</p>
           <p className="mt-1 font-mono text-xs text-zinc-600">{detail.detail}</p>
-          <p className="mt-4 text-xs text-zinc-500">点击右上角「▶ 启动」启动服务后查看详情</p>
+          <p className="mt-4 text-xs text-zinc-500">点击右上角「启动」按钮启动服务后查看详情</p>
         </div>
       )}
 
@@ -177,7 +178,7 @@ export function RedisDetailPanel() {
                     </span>
                   </span>
                   <PanelButton
-                    label="⚠️ FLUSHDB"
+                    label="FLUSHDB"
                     danger
                     disabled={busy}
                     onClick={() =>
@@ -200,7 +201,7 @@ export function RedisDetailPanel() {
                         {k.type}
                       </span>
                       <span className="w-20 shrink-0 text-right font-mono text-[11px] text-zinc-500">
-                        {k.ttl === -1 ? "永久" : k.ttl < 0 ? "—" : `${k.ttl}s`}
+                        {k.ttl === -1 ? "永久" : k.ttl < 0 ? "-" : `${k.ttl}s`}
                       </span>
                       <PanelButton
                         label="删除"

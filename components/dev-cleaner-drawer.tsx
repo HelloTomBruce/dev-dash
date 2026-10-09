@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  BroomIcon,
+  ArrowsClockwiseIcon,
+  XIcon,
+  SparkleIcon,
+} from "@phosphor-icons/react";
 import type { CleanerScanResult, CleanerTarget } from "@/lib/cleaner/scanner";
 import { ActionResultModal, type ResultModalState } from "@/components/action-result-modal";
 
@@ -243,7 +249,7 @@ export function DevCleanerDrawer({
           <div>
             <div className="flex items-center gap-2.5">
               <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                <span>🧹</span> 开发磁盘清理助手
+                <BroomIcon size={18} className="text-emerald-400" /> 开发磁盘清理助手
               </h2>
               {data && (
                 <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-400 border border-emerald-500/20">
@@ -262,13 +268,13 @@ export function DevCleanerDrawer({
               title="重新扫描磁盘缓存"
               className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white disabled:opacity-50"
             >
-              {loading ? "扫描中…" : "↻ 重新扫描"}
+              {loading ? "扫描中…" : <><ArrowsClockwiseIcon size={12} weight="bold" className="inline-block" /> 重新扫描</>}
             </button>
             <button
               onClick={onClose}
               className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
             >
-              ✕
+              <XIcon size={14} weight="bold" />
             </button>
           </div>
         </div>
@@ -312,7 +318,7 @@ export function DevCleanerDrawer({
 
           {!loading && data && data.targets.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center text-zinc-400 space-y-2">
-              <span className="text-3xl">✨</span>
+              <SparkleIcon size={30} className="text-emerald-400" />
               <p className="font-medium text-sm text-zinc-200">系统非常干净！</p>
               <p className="text-xs text-zinc-500">未检测到占用磁盘的开发缓存或中间文件</p>
             </div>

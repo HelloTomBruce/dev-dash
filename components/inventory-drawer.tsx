@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { XIcon } from "@phosphor-icons/react";
 import type { InventoryItem, InventoryMeta, InventoryResult } from "@/lib/inventories/meta";
 
 export function InventoryDrawer({
@@ -92,7 +93,7 @@ export function InventoryDrawer({
               onClick={onClose}
               className="rounded-lg px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
             >
-              ✕
+              <XIcon size={14} weight="bold" />
             </button>
           </div>
         </div>
@@ -152,7 +153,7 @@ export function InventoryDrawer({
                   )}
                 </span>
                 <span className="shrink-0 font-mono text-xs text-emerald-400">
-                  {it.version ?? "—"}
+                  {it.version ?? "-"}
                 </span>
               </button>
             ))}

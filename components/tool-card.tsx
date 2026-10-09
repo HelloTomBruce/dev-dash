@@ -3,6 +3,13 @@ import type { InventoryMeta } from "@/lib/inventories/meta";
 import { ActionMenu } from "./action-menu";
 import { DETAIL_PAGES, type ToolActionDef } from "@/lib/actions/meta";
 import Link from "next/link";
+import {
+  ArrowUpRightIcon,
+  ArrowUpIcon,
+  PlayIcon,
+  StopIcon,
+  ClipboardTextIcon,
+} from "@phosphor-icons/react";
 
 const SOURCE_STYLE: Record<string, string> = {
   nvm: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -65,7 +72,7 @@ export function ToolCard({
           <span className="text-sm font-medium text-zinc-300">{tool.name}</span>
           <span className="text-[10px] text-zinc-500">未安装</span>
         </div>
-        <div className="mt-2 text-xs text-zinc-600">—</div>
+        <div className="mt-2 text-xs text-zinc-600">暂无版本信息</div>
       </div>
     );
   }
@@ -85,9 +92,14 @@ export function ToolCard({
           <Link
             href={`/tools/${tool.id}`}
             title="打开详情页"
-            className="truncate text-sm font-semibold text-zinc-100 hover:text-emerald-300 hover:underline"
+            className="group flex items-center gap-1 truncate text-sm font-semibold text-zinc-100 hover:text-emerald-300"
           >
-            {tool.name} ↗
+            {tool.name}
+            <ArrowUpRightIcon
+              size={12}
+              weight="bold"
+              className="shrink-0 opacity-0 transition-opacity group-hover:opacity-60"
+            />
           </Link>
         ) : (
           <span className="truncate text-sm font-semibold text-zinc-100">
@@ -104,7 +116,7 @@ export function ToolCard({
               {tool.version}
               {tool.outdated && (
                 <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-amber-500/15 px-1 py-0.5 text-[9px] text-amber-400" title={tool.outdated.latest}>
-                  ⬆ {tool.outdated.latest}
+                  <ArrowUpIcon size={9} weight="bold" /> {tool.outdated.latest}
                 </span>
               )}
             </span>
@@ -142,7 +154,7 @@ export function ToolCard({
               disabled={service.busy}
               className="inline-flex items-center gap-0.5 rounded-md border border-emerald-600/50 bg-emerald-600/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
             >
-              {service.busy ? "…" : "▶ 启动"}
+              {service.busy ? "…" : <><PlayIcon size={9} weight="fill" /> 启动</>}
             </button>
           ) : (
             <button
@@ -150,7 +162,7 @@ export function ToolCard({
               disabled={service.busy}
               className="inline-flex items-center gap-0.5 rounded-md border border-zinc-600 bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
             >
-              {service.busy ? "…" : "■ 停止"}
+              {service.busy ? "…" : <><StopIcon size={9} weight="fill" /> 停止</>}
             </button>
           )
         )}
@@ -181,9 +193,9 @@ export function ToolCard({
             <button
               key={inv.id}
               onClick={() => onOpenInventory(inv)}
-              className="rounded-md border border-zinc-700 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+              className="flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
             >
-              📋 {inv.entryLabel}
+              <ClipboardTextIcon size={12} weight="regular" /> {inv.entryLabel}
             </button>
           ))}
         </div>

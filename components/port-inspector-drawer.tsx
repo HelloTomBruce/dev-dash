@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  PlugsIcon,
+  ArrowsClockwiseIcon,
+  XIcon,
+  CheckIcon,
+  LinkSimpleIcon,
+  WarningIcon,
+} from "@phosphor-icons/react";
 import type { PortCategory, PortItem, PortsScanResult } from "@/lib/ports/scanner";
 
 interface PortInspectorDrawerProps {
@@ -146,7 +154,7 @@ export function PortInspectorDrawer({
           <div>
             <div className="flex items-center gap-2.5">
               <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                <span>🔌</span> 全局端口占用监控
+                <PlugsIcon size={18} className="text-emerald-400" /> 全局端口占用监控
               </h2>
               {data && (
                 <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/20">
@@ -165,13 +173,13 @@ export function PortInspectorDrawer({
               title="刷新端口列表"
               className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white disabled:opacity-50"
             >
-              {loading ? "扫描中…" : "↻ 刷新"}
+              {loading ? "扫描中…" : <><ArrowsClockwiseIcon size={12} weight="bold" className="inline-block" /> 刷新</>}
             </button>
             <button
               onClick={onClose}
               className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
             >
-              ✕
+              <XIcon size={14} weight="bold" />
             </button>
           </div>
         </div>
@@ -191,7 +199,7 @@ export function PortInspectorDrawer({
                 onClick={() => setSearch("")}
                 className="absolute right-2.5 top-2 text-xs text-zinc-500 hover:text-zinc-300"
               >
-                ✕
+                <XIcon size={12} weight="bold" />
               </button>
             )}
           </div>
@@ -338,14 +346,22 @@ export function PortInspectorDrawer({
                       title="复制本地链接"
                       className="rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
                     >
-                      {copied === `http://localhost:${item.port}` ? "✓" : "🔗"}
+                      {copied === `http://localhost:${item.port}` ? (
+                        <CheckIcon size={12} weight="bold" className="text-emerald-400" />
+                      ) : (
+                        <LinkSimpleIcon size={12} />
+                      )}
                     </button>
                     <button
                       onClick={() => handleCopy(String(item.pid), "已复制 PID")}
                       title="复制 PID"
                       className="rounded border border-zinc-800 bg-zinc-800/60 px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
                     >
-                      {copied === String(item.pid) ? "✓" : "PID"}
+                      {copied === String(item.pid) ? (
+                        <CheckIcon size={12} weight="bold" className="text-emerald-400" />
+                      ) : (
+                        "PID"
+                      )}
                     </button>
 
                     {item.isSelf ? (
@@ -382,7 +398,7 @@ export function PortInspectorDrawer({
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-xs">
             <div className="w-full max-w-md rounded-xl border border-zinc-700 bg-zinc-900 p-5 shadow-2xl space-y-4">
               <div className="flex items-center gap-2.5 text-amber-400">
-                <span className="text-xl">⚠️</span>
+                <WarningIcon size={20} weight="fill" className="shrink-0" />
                 <h3 className="font-semibold text-zinc-100">确认终止进程并释放端口？</h3>
               </div>
               <p className="text-xs text-zinc-300 leading-relaxed">
