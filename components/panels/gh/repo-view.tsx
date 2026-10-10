@@ -13,6 +13,13 @@ import type {
 import { PanelButton } from "../shared";
 import { useGhActionRunner } from "./action-runner";
 import { CircleIcon, StarIcon } from "@phosphor-icons/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type SubTab = "prs" | "issues" | "runs";
 
@@ -65,15 +72,16 @@ function PrRow({ pr, repo, busy, onAction }: {
           <span className="text-[11px] text-zinc-600">{pr.reviewDecision}</span>
         )}
         <span className="flex-1" />
-        <select
-          value={method}
-          onChange={(e) => setMethod(e.target.value as typeof method)}
-          className="rounded-md border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[11px] text-zinc-400"
-        >
-          <option value="squash">squash</option>
-          <option value="merge">merge</option>
-          <option value="rebase">rebase</option>
-        </select>
+        <Select value={method} onValueChange={(val) => setMethod(val as typeof method)}>
+          <SelectTrigger className="h-6 w-[85px] border-zinc-700 bg-zinc-900 px-2 text-[11px] text-zinc-300">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="border-zinc-800 bg-zinc-900 text-zinc-300">
+            <SelectItem value="squash" className="text-[11px]">squash</SelectItem>
+            <SelectItem value="merge" className="text-[11px]">merge</SelectItem>
+            <SelectItem value="rebase" className="text-[11px]">rebase</SelectItem>
+          </SelectContent>
+        </Select>
         <PanelButton
           label="合并"
           disabled={busy || pr.isDraft || pr.mergeable !== "MERGEABLE"}
@@ -265,25 +273,28 @@ export function RepoView() {
           placeholder="过滤仓库…"
           className="w-56 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
         />
-        <select
+        <Select
           value={repo ?? ""}
-          onChange={(e) => {
-            const v = e.target.value || null;
+          onValueChange={(val) => {
+            const v = val || null;
             setRepo(v);
             setDetail(null);
             if (v) loadDetail(v);
           }}
-          className="max-w-xs flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-mono text-sm text-zinc-200 outline-none focus:border-zinc-600"
         >
-          <option value="">选择仓库…</option>
-          {filtered.map((r) => (
-            <option key={r.fullName} value={r.fullName}>
-              {r.fullName}
-              {r.isPrivate ? " (私有)" : ""}
-              {r.isFork ? " (fork)" : ""}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="h-9 max-w-xs flex-1 border-zinc-800 bg-zinc-900 font-mono text-sm text-zinc-200">
+            <SelectValue placeholder="选择仓库…" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72 border-zinc-800 bg-zinc-900 font-mono text-xs text-zinc-200">
+            {filtered.map((r) => (
+              <SelectItem key={r.fullName} value={r.fullName}>
+                {r.fullName}
+                {r.isPrivate ? " (私有)" : ""}
+                {r.isFork ? " (fork)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {detail?.repo && (
           <span className="flex items-center gap-3 text-xs text-zinc-500">
             <span className="flex items-center gap-1">

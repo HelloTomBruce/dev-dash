@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { StarIcon } from "@phosphor-icons/react";
 import type { GhSearchType } from "@/lib/gh/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const TYPES: Array<{ key: GhSearchType; label: string }> = [
   { key: "repos", label: "仓库" },
@@ -103,15 +110,16 @@ export function SearchView() {
   return (
     <div className="mt-6">
       <div className="flex gap-2">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as GhSearchType)}
-          className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-600"
-        >
-          {TYPES.map((t) => (
-            <option key={t.key} value={t.key}>{t.label}</option>
-          ))}
-        </select>
+        <Select value={type} onValueChange={(val) => setType(val as GhSearchType)}>
+          <SelectTrigger className="w-[110px] bg-zinc-900 border-zinc-800 text-zinc-200">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-200">
+            {TYPES.map((t) => (
+              <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}

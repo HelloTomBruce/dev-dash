@@ -17,6 +17,13 @@ import {
   CircleIcon,
 } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface NginxLocation {
   path: string;
@@ -516,17 +523,18 @@ export function NginxDetailPanel() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-2">
               <label className="text-xs text-zinc-400">选择文件:</label>
-              <select
-                value={selectedFile}
-                onChange={(e) => setSelectedFile(e.target.value)}
-                className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
-              >
-                {(detail?.configFiles ?? []).map((f) => (
-                  <option key={f.path} value={f.path}>
-                    {f.relPath} ({Math.round(f.size / 1024 * 10) / 10} KB)
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedFile} onValueChange={(val) => setSelectedFile(val ?? "")}>
+                <SelectTrigger className="h-8 min-w-[220px] border-zinc-700 bg-zinc-950 text-xs text-zinc-200">
+                  <SelectValue placeholder="选择文件…" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 border-zinc-800 bg-zinc-950 text-xs text-zinc-200">
+                  {(detail?.configFiles ?? []).map((f) => (
+                    <SelectItem key={f.path} value={f.path}>
+                      {f.relPath} ({Math.round((f.size / 1024) * 10) / 10} KB)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center gap-2">
