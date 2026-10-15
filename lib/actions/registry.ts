@@ -529,9 +529,9 @@ export const actionExecutors: Record<string, ActionExecutor> = {
       pip: "pip3 cache purge",
       brew: "brew cleanup --prune=all",
       yarn: "yarn cache clean --all",
-      cargo: "rm -rf ~/.cargo/registry/cache/* ~/.cargo/git/db/*",
-      "node-gyp": "rm -rf ~/.cache/node-gyp/*",
-      "xcode-derived": "rm -rf ~/Library/Developer/Xcode/DerivedData/*",
+      cargo: "rm -rf ~/.cargo/registry/cache ~/.cargo/git/db",
+      "node-gyp": "rm -rf ~/.cache/node-gyp",
+      "xcode-derived": "rm -rf ~/Library/Developer/Xcode/DerivedData",
     };
 
     if (!target || !CLEAN_COMMANDS[target]) {
@@ -565,9 +565,9 @@ export const actionExecutors: Record<string, ActionExecutor> = {
       pip: { name: "pip 缓存", cmd: "pip3 cache purge" },
       brew: { name: "Homebrew 缓存", cmd: "brew cleanup --prune=all" },
       yarn: { name: "Yarn 缓存", cmd: "yarn cache clean --all" },
-      cargo: { name: "Cargo 缓存", cmd: "rm -rf ~/.cargo/registry/cache/* ~/.cargo/git/db/*" },
-      "node-gyp": { name: "node-gyp 缓存", cmd: "rm -rf ~/.cache/node-gyp/*" },
-      "xcode-derived": { name: "Xcode 派生数据", cmd: "rm -rf ~/Library/Developer/Xcode/DerivedData/*" },
+      cargo: { name: "Cargo 缓存", cmd: "rm -rf ~/.cargo/registry/cache ~/.cargo/git/db" },
+      "node-gyp": { name: "node-gyp 缓存", cmd: "rm -rf ~/.cache/node-gyp" },
+      "xcode-derived": { name: "Xcode 派生数据", cmd: "rm -rf ~/Library/Developer/Xcode/DerivedData" },
     };
 
     const logs: string[] = [];

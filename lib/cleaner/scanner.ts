@@ -135,7 +135,7 @@ export async function scanCleanerTargets(): Promise<CleanerScanResult> {
       path: path.join(home, ".cargo/registry/cache"),
       displayPath: "~/.cargo/registry/cache",
       description: "crates.io 下载的 .crate 归档包缓存",
-      cleanCommand: "rm -rf ~/.cargo/registry/cache/*",
+      cleanCommand: "rm -rf ~/.cargo/registry/cache ~/.cargo/git/db",
       level: "safe" as const,
     },
     {
@@ -157,7 +157,7 @@ export async function scanCleanerTargets(): Promise<CleanerScanResult> {
       path: path.join(home, "Library/Developer/Xcode/DerivedData"),
       displayPath: "~/Library/Developer/Xcode/DerivedData",
       description: "Xcode / iOS 构建索引与中间产物，可在重新编译时自动重建",
-      cleanCommand: "rm -rf ~/Library/Developer/Xcode/DerivedData/*",
+      cleanCommand: "rm -rf ~/Library/Developer/Xcode/DerivedData",
       level: "careful" as const,
     },
   ];
