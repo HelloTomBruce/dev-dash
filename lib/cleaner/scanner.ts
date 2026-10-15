@@ -102,7 +102,7 @@ export async function scanCleanerTargets(): Promise<CleanerScanResult> {
       path: path.join(home, "Library/Caches/pip"),
       displayPath: "~/Library/Caches/pip",
       description: "pip 安装 Python 包时缓存的 wheel 和源码归档",
-      cleanCommand: "pip cache purge",
+      cleanCommand: "pip3 cache purge",
       level: "safe" as const,
     },
     {
