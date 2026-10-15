@@ -46,7 +46,7 @@ function identifyPort(port: number, processName: string, command: string): { cat
   if (port === 27017 || pName.includes("mongod") || cmd.includes("mongod")) {
     return { category: "database", tag: "MongoDB" };
   }
-  if (port === 80 || port === 443 || port === 8080 && pName.includes("nginx")) {
+  if ((port === 80 || port === 443 || port === 8080) && pName.includes("nginx")) {
     return { category: "dev-server", tag: "Nginx" };
   }
 

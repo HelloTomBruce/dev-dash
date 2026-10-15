@@ -16,6 +16,8 @@ export function gcTasks(): void {
 }
 
 export function createTask(actionId: string): string {
+  // 每次新建任务时顺带回收过期任务，避免 Map 随进程存活时间无界增长
+  gcTasks();
   const taskId = `${actionId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   tasks.set(taskId, {
     taskId,

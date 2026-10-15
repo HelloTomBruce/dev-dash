@@ -2,22 +2,11 @@ import { detectors } from "./detectors/registry";
 import { resetLoginPath } from "./detectors/utils/shell";
 import type { ScanResult, ToolResult } from "./detectors/types";
 import { outdatedChecks } from "./detectors/outdated";
+import { withTimeout, isTimeout } from "./utils/timeout";
 
 const CACHE_TTL_MS = 60_000;
 
 let cache: { result: ScanResult; at: number } | null = null;
-
-async function withTimeout<T>(
-  p: Promise<T>,
-  ms: number
-): Promise<T | { __timeout: true }> {
-  return Promise.race([
-    p,
-    new Promise<{ __timeout: true }>((resolve) =>
-      setTimeout(() => resolve({ __timeout: true }), ms)
-    ),
-  ]);
-}
 
 /**
  * 全量扫描：所有检测器并行执行，单个 10s 超时，结果缓存 60s。
@@ -37,7 +26,7 @@ export async function runScan(force = false): Promise<ScanResult> {
     detectors.map(async (d) => {
       const t0 = Date.now();
       const out = await withTimeout(d.detect(), 10_000);
-      if (out && typeof out === "object" && "__timeout" in out) {
+      if (isTimeout(out)) {
         return {
           ...emptyResult(d),
           status: "error" as const,

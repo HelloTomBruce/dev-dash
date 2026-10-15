@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { getLoginPath, resetLoginPath, run, extractVersion } from "@/lib/detectors/utils/shell";
+import { getLoginPath, resetLoginPath, runArgs, extractVersion } from "@/lib/detectors/utils/shell";
 
 export interface PathEntry {
   index: number;
@@ -165,7 +165,7 @@ export async function runEnvironmentDoctor(force = false): Promise<DoctorScanRes
   const binaryChecks = KEY_BINARIES.map(async (tool) => {
     try {
       // 在登录 shell 环境执行 which -a
-      const whichRes = await run(`which -a "${tool.name}" 2>/dev/null`, 3000);
+      const whichRes = await runArgs("which", ["-a", tool.name], 3000, { redirections: "2>/dev/null" });
       if (!whichRes.ok || !whichRes.stdout.trim()) return null;
 
       const rawLines = whichRes.stdout
@@ -182,7 +182,10 @@ export async function runEnvironmentDoctor(force = false): Promise<DoctorScanRes
         uniqueBins.map(async (binPath) => {
           let version: string | null = null;
           try {
-            const vRes = await run(`"${binPath}" --version 2>&1 || "${binPath}" -v 2>&1`, 2500);
+            let vRes = await runArgs(binPath, ["--version"], 2500, { redirections: "2>&1" });
+            if (!vRes.stdout && !vRes.stderr) {
+              vRes = await runArgs(binPath, ["-v"], 2500, { redirections: "2>&1" });
+            }
             if (vRes.stdout || vRes.stderr) {
               version = extractVersion(vRes.stdout || vRes.stderr);
             }

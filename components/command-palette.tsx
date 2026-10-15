@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { useModalA11y } from "@/components/ui/use-focus-trap";
 
 export interface PaletteItem {
   id: string;
@@ -37,6 +38,9 @@ function PaletteInner({
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useModalA11y(panelRef, { onEscape: onClose });
 
   const filtered = useMemo(() => {
     const list = (() => {
@@ -90,15 +94,20 @@ function PaletteInner({
         onClose();
         row.it.action();
       }
-    } else if (e.key === "Escape") {
-      onClose();
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
       <button aria-label="关闭" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-2xl">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="全局搜索"
+        tabIndex={-1}
+        className="relative w-full max-w-xl overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950 shadow-2xl outline-none"
+      >
         <div className="flex items-center gap-2 border-b border-zinc-800 px-4">
           <MagnifyingGlassIcon size={14} className="text-zinc-500" />
           <input

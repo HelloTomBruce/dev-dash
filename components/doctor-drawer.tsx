@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   StethoscopeIcon,
   ArrowsClockwiseIcon,
@@ -15,6 +15,7 @@ import {
   WrenchIcon,
 } from "@phosphor-icons/react";
 import type { BinaryShadow, DoctorScanResult, PathEntry } from "@/lib/doctor/scanner";
+import { useModalA11y } from "@/components/ui/use-focus-trap";
 
 interface DoctorDrawerProps {
   onClose: () => void;
@@ -54,14 +55,9 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
     return () => clearTimeout(t);
   }, [load]);
 
-  // Esc 快捷键关闭
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  // 焦点陷阱 + Esc 快捷键关闭
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalA11y(panelRef, { onEscape: onClose });
 
   const handleCopy = useCallback((text: string, label = "已复制") => {
     navigator.clipboard.writeText(text).then(() => {
@@ -99,7 +95,14 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
       <div className="flex-1" onClick={onClose} />
 
       {/* 抽屉主体 */}
-      <div className="flex w-full max-w-2xl flex-col bg-zinc-950 border-l border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-200">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="开发环境体检与冲突诊断"
+        tabIndex={-1}
+        className="flex w-full max-w-2xl flex-col bg-zinc-950 border-l border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-200 outline-none"
+      >
         {/* 顶部标题栏 */}
         <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
           <div>
@@ -124,6 +127,7 @@ export function DoctorDrawer({ onClose }: DoctorDrawerProps) {
             </button>
             <button
               onClick={onClose}
+              aria-label="关闭"
               className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
             >
               <XIcon size={14} weight="bold" />

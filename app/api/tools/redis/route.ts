@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { run } from "@/lib/detectors/utils/shell";
+import { run, shQuote } from "@/lib/detectors/utils/shell";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,14 +30,16 @@ async function sampleDb(db: number): Promise<DbSample["sampleKeys"]> {
   const keys = lines.slice(1, 16); // 第一行是游标
   if (keys.length === 0) return [];
 
-  // 管道批量执行 TYPE/TTL（key 中的双引号剔除，避免破坏命令）
-  const cmds = keys
-    .map((k) => {
-      const safe = k.replace(/["\\]/g, "");
-      return `TYPE "${safe}"\\nTTL "${safe}"`;
-    })
-    .join("\\n");
-  const res = await run(`printf "${cmds}\\n" | redis-cli -n ${db}`, 15000);
+  // 管道批量执行 TYPE/TTL：每个命令作为独立 argv 传给 printf '%s\n'，
+  // 由 shQuote 兜底 shell 转义，避免 key 中的元字符（反引号 / $() / 分号）注入。
+  const commands = keys.flatMap((k) => {
+    const safe = k.replace(/["\\]/g, "");
+    return [`TYPE "${safe}"`, `TTL "${safe}"`];
+  });
+  const res = await run(
+    `printf '%s\\n' ${commands.map(shQuote).join(" ")} | redis-cli -n ${db}`,
+    15000
+  );
   const out = res.stdout.split(/\r?\n/).filter(Boolean);
 
   return keys.map((key, i) => ({

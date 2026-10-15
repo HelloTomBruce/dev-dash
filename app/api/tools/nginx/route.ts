@@ -1,42 +1,16 @@
 import { NextResponse } from "next/server";
-import { run } from "@/lib/detectors/utils/shell";
+import { run, runArgs } from "@/lib/detectors/utils/shell";
 import fs from "node:fs/promises";
 import path from "node:path";
+import type {
+  ConfigFileInfo,
+  NginxLocation,
+  NginxServerBlock,
+  ProcessInfo,
+} from "@/lib/nginx/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-interface NginxLocation {
-  path: string;
-  target: string;
-  type: "proxy" | "root" | "alias" | "return" | "other";
-}
-
-interface NginxServerBlock {
-  file: string;
-  relPath: string;
-  listen: string[];
-  serverNames: string[];
-  root?: string;
-  locations: NginxLocation[];
-  ssl: boolean;
-}
-
-interface ProcessInfo {
-  pid: string;
-  user: string;
-  cpu: string;
-  mem: string;
-  command: string;
-}
-
-interface ConfigFileInfo {
-  path: string;
-  name: string;
-  relPath: string;
-  size: number;
-  updatedAt: string;
-}
 
 /** 简单的 Nginx 配置块提取 */
 function parseServerBlocks(content: string, filePath: string, baseDir: string): NginxServerBlock[] {
@@ -161,7 +135,7 @@ function parseSingleServer(blockText: string, filePath: string, relPath: string)
 
 async function readTail(filePath: string, lines = 50): Promise<string[]> {
   try {
-    const res = await run(`tail -n ${lines} "${filePath}" 2>/dev/null`, 5000);
+    const res = await runArgs("tail", ["-n", String(lines), filePath], 5000, { redirections: "2>/dev/null" });
     if (!res.ok || !res.stdout.trim()) return [];
     return res.stdout.trim().split("\n");
   } catch {

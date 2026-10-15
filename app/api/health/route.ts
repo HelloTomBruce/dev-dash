@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import { runScan } from "@/lib/scan";
 import { healthProviders, type HealthCheckResult } from "@/lib/health/providers";
+import { withTimeout, isTimeout } from "@/lib/utils/timeout";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const CACHE_TTL_MS = 30_000;
 let cache: { at: number; payload: unknown } | null = null;
-
-async function withTimeout<T>(
-  p: Promise<T>,
-  ms: number
-): Promise<T | { __timeout: true }> {
-  return Promise.race([
-    p,
-    new Promise<{ __timeout: true }>((resolve) =>
-      setTimeout(() => resolve({ __timeout: true }), ms)
-    ),
-  ]);
-}
 
 export async function GET(request: Request) {
   const force = new URL(request.url).searchParams.get("force") === "1";
@@ -42,7 +31,7 @@ export async function GET(request: Request) {
       entries.map(async ([toolId, fn]) => {
         const t0 = Date.now();
         const out = await withTimeout(fn(), 9000);
-        if (out && typeof out === "object" && "__timeout" in out) {
+        if (isTimeout(out)) {
           return {
             toolId,
             status: "stopped",

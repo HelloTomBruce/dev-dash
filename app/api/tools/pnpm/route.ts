@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { run } from "@/lib/detectors/utils/shell";
+import { run, runArgs } from "@/lib/detectors/utils/shell";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ async function getStoreSize(storePath: string) {
   if (storeSizeCache && Date.now() - storeSizeCache.at < 600_000) {
     return storeSizeCache.size;
   }
-  const res = await run(`du -sh "${storePath}" 2>/dev/null`, 90_000);
+  const res = await runArgs("du", ["-sh", storePath], 90_000, { redirections: "2>/dev/null" });
   const size = res.stdout.trim().split(/\s+/)[0] ?? null;
   storeSizeCache = { at: Date.now(), size };
   return size;

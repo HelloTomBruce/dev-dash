@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { run } from "@/lib/detectors/utils/shell";
+import { run, runArgs } from "@/lib/detectors/utils/shell";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,9 +9,13 @@ let sizesCache: { at: number; cellarSize: string | null; cacheSize: string | nul
 
 async function getSizes(prefix: string) {
   if (sizesCache && Date.now() - sizesCache.at < 600_000) return sizesCache;
+  const cacheDirRes = await runArgs("brew", ["--cache"], 10_000);
+  const cacheDir = cacheDirRes.stdout.trim();
   const [cellarRes, cacheRes] = await Promise.all([
-    run(`du -sh "${prefix}/Cellar" 2>/dev/null`, 90_000),
-    run(`du -sh "$(brew --cache)" 2>/dev/null`, 60_000),
+    runArgs("du", ["-sh", `${prefix}/Cellar`], 90_000, { redirections: "2>/dev/null" }),
+    cacheDir
+      ? runArgs("du", ["-sh", cacheDir], 60_000, { redirections: "2>/dev/null" })
+      : Promise.resolve({ ok: false, stdout: "", stderr: "" }),
   ]);
   const sizeOf = (s: string) => s.trim().split(/\s+/)[0] ?? null;
   sizesCache = {

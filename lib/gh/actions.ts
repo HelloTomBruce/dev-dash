@@ -1,4 +1,5 @@
-import { runGh, zshQuote } from "./runner";
+import { runGh } from "./runner";
+import { shQuote } from "@/lib/detectors/utils/shell";
 import {
   validateBody,
   validateFlag,
@@ -21,7 +22,7 @@ async function exec(actionId: string, args: string[], timeoutMs = 60000): Promis
     ok: res.ok,
     actionId,
     // 审计用命令还原转义后的实际执行内容
-    command: ["gh", ...args.map(zshQuote)].join(" "),
+    command: ["gh", ...args.map(shQuote)].join(" "),
     output,
     error: res.ok ? null : output || "执行失败",
     durationMs: Date.now() - start,

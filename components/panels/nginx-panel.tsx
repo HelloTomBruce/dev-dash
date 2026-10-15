@@ -10,78 +10,13 @@ import {
   NotePencilIcon,
   ClipboardTextIcon,
   GearIcon,
-  ArrowUpRightIcon,
-  FolderOpenIcon,
-  FloppyDiskIcon,
-  ArrowsClockwiseIcon,
-  CircleIcon,
 } from "@phosphor-icons/react";
 import { BackLink, InfoCard, PanelButton, useActionRunner } from "./shared";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-interface NginxLocation {
-  path: string;
-  target: string;
-  type: "proxy" | "root" | "alias" | "return" | "other";
-}
-
-interface NginxServerBlock {
-  file: string;
-  relPath: string;
-  listen: string[];
-  serverNames: string[];
-  root?: string;
-  locations: NginxLocation[];
-  ssl: boolean;
-}
-
-interface ProcessInfo {
-  pid: string;
-  user: string;
-  cpu: string;
-  mem: string;
-  command: string;
-}
-
-interface ConfigFileInfo {
-  path: string;
-  name: string;
-  relPath: string;
-  size: number;
-  updatedAt: string;
-}
-
-interface NginxDetail {
-  status: "running" | "stopped";
-  version: string;
-  prefix: string;
-  confPath: string;
-  confDir: string;
-  serversDir: string;
-  logDir: string;
-  accessLogPath: string;
-  errorLogPath: string;
-  testResult: {
-    ok: boolean;
-    output: string;
-  };
-  processCount: number;
-  processes: ProcessInfo[];
-  servers: NginxServerBlock[];
-  configFiles: ConfigFileInfo[];
-  accessLogs: string[];
-  errorLogs: string[];
-  buildInfo: {
-    raw: string;
-    configureArgs: string[];
-  };
-}
+import type { NginxDetail } from "@/lib/nginx/types";
+import { SitesTab } from "./nginx/sites-tab";
+import { EditorTab } from "./nginx/editor-tab";
+import { LogsTab } from "./nginx/logs-tab";
+import { InfoTab } from "./nginx/info-tab";
 
 export function NginxDetailPanel() {
   const [detail, setDetail] = useState<NginxDetail | null>(null);
@@ -408,337 +343,49 @@ export function NginxDetailPanel() {
       </div>
 
       {/* Tab 1: Sites & Server Blocks */}
-      {activeTab === "sites" && (
-        <section className="mt-6 space-y-4">
-          {(!detail?.servers || detail.servers.length === 0) ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-8 text-center text-zinc-500">
-              未在配置文件中解析到 server 块。
-            </div>
-          ) : (
-            detail.servers.map((server, idx) => {
-              const primaryPort = server.listen[0]?.replace(/\s+ssl.*/, "").replace(/.*:/, "").trim() || "80";
-              const openUrl = `http://localhost:${primaryPort}`;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 shadow-sm transition hover:border-zinc-700"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-zinc-200">
-                        {server.serverNames.join(", ")}
-                      </span>
-                      {server.listen.map((l, i) => (
-                        <span
-                          key={i}
-                          className="rounded bg-emerald-500/10 px-2 py-0.5 font-mono text-xs font-medium text-emerald-400 border border-emerald-500/20"
-                        >
-                          Port: {l}
-                        </span>
-                      ))}
-                      {server.ssl && (
-                        <span className="rounded bg-purple-500/10 px-2 py-0.5 font-mono text-xs font-medium text-purple-400 border border-purple-500/20">
-                          SSL
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={openUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-white"
-                      >
-                        <ArrowUpRightIcon size={11} /> 打开 {openUrl}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-zinc-400 sm:grid-cols-2">
-                    <div>
-                      <span className="text-zinc-500">定义文件: </span>
-                      <span className="font-mono text-zinc-300">{server.relPath}</span>
-                    </div>
-                    {server.root && (
-                      <div>
-                        <span className="text-zinc-500">默认 Root: </span>
-                        <span className="font-mono text-zinc-300">{server.root}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {server.locations.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-xs font-medium text-zinc-400 mb-2">路由与代理规则 (Locations):</p>
-                      <div className="overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950/60">
-                        <table className="w-full text-left text-xs">
-                          <thead>
-                            <tr className="border-b border-zinc-800/80 text-[11px] text-zinc-500">
-                              <th className="px-3 py-2 font-medium">路径 (Path)</th>
-                              <th className="px-3 py-2 font-medium">类型</th>
-                              <th className="px-3 py-2 font-medium">目标 / 动作 (Target)</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-zinc-800/40 font-mono text-[11px]">
-                            {server.locations.map((loc, lIdx) => (
-                              <tr key={lIdx} className="hover:bg-zinc-900/40">
-                                <td className="px-3 py-2 font-semibold text-emerald-300">
-                                  {loc.path}
-                                </td>
-                                <td className="px-3 py-2">
-                                  <span
-                                    className={`rounded px-1.5 py-0.5 text-[10px] ${
-                                      loc.type === "proxy"
-                                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                        : loc.type === "alias"
-                                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                        : loc.type === "root"
-                                        ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                                        : "bg-zinc-800 text-zinc-400"
-                                    }`}
-                                  >
-                                    {loc.type}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2 text-zinc-300 truncate max-w-md" title={loc.target}>
-                                  {loc.target}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </section>
-      )}
+      {activeTab === "sites" && <SitesTab servers={detail?.servers ?? []} />}
 
       {/* Tab 2: Config Editor */}
       {activeTab === "editor" && (
-        <section className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-zinc-400">选择文件:</label>
-              <Select value={selectedFile} onValueChange={(val) => setSelectedFile(val ?? "")}>
-                <SelectTrigger className="h-8 min-w-[220px] border-zinc-700 bg-zinc-950 text-xs text-zinc-200">
-                  <SelectValue placeholder="选择文件…" />
-                </SelectTrigger>
-                <SelectContent className="max-h-72 border-zinc-800 bg-zinc-950 text-xs text-zinc-200">
-                  {(detail?.configFiles ?? []).map((f) => (
-                    <SelectItem key={f.path} value={f.path}>
-                      {f.relPath} ({Math.round((f.size / 1024) * 10) / 10} KB)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  runAction({
-                    actionId: "tool.open-dir",
-                    label: "打开配置目录",
-                    params: { dir: detail?.confDir ?? "/opt/homebrew/etc/nginx" },
-                  })
-                }
-                className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-white"
-              >
-                <FolderOpenIcon size={13} /> 打开所在目录
-              </button>
-              <button
-                disabled={fileLoading || !isDirty}
-                onClick={() => handleSaveConfig(false)}
-                className="flex items-center gap-1.5 rounded bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-40"
-              >
-                <FloppyDiskIcon size={13} /> 保存配置
-              </button>
-              <button
-                disabled={fileLoading || !isDirty}
-                onClick={() => handleSaveConfig(true)}
-                className="flex items-center gap-1.5 rounded bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-40"
-              >
-                <ArrowsClockwiseIcon size={13} weight="bold" /> 保存并重载
-              </button>
-            </div>
-          </div>
-
-          {saveStatus && (
-            <div
-              className={`mt-3 rounded-lg border p-2.5 text-xs font-mono ${
-                saveStatus.ok
-                  ? "border-emerald-500/30 bg-emerald-950/30 text-emerald-300"
-                  : "border-red-500/30 bg-red-950/30 text-red-300"
-              }`}
-            >
-              {saveStatus.msg}
-            </div>
-          )}
-
-          <div className="mt-4 relative">
-            {fileLoading ? (
-              <div className="h-96 flex items-center justify-center text-xs text-zinc-500">
-                加载中...
-              </div>
-            ) : (
-              <textarea
-                value={fileContent}
-                onChange={(e) => setFileContent(e.target.value)}
-                spellCheck={false}
-                className="h-[500px] w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-relaxed text-zinc-200 focus:border-emerald-500 focus:outline-none"
-              />
-            )}
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
-            <span>
-              {isDirty ? (
-                <span className="flex items-center gap-1 text-amber-400">
-                  <CircleIcon size={8} weight="fill" /> 存在未保存修改
-                </span>
-              ) : (
-                "与磁盘文件一致"
-              )}
-            </span>
-            <span>保存时将自动执行 nginx -t 语法校验并具备防炸机回滚机制</span>
-          </div>
-        </section>
+        <EditorTab
+          configFiles={detail?.configFiles ?? []}
+          selectedFile={selectedFile}
+          onChangeFile={setSelectedFile}
+          fileContent={fileContent}
+          onChangeFileContent={setFileContent}
+          fileLoading={fileLoading}
+          saveStatus={saveStatus}
+          isDirty={isDirty}
+          onSave={handleSaveConfig}
+          onOpenDir={() =>
+            runAction({
+              actionId: "tool.open-dir",
+              label: "打开配置目录",
+              params: { dir: detail?.confDir ?? "/opt/homebrew/etc/nginx" },
+            })
+          }
+        />
       )}
 
       {/* Tab 3: Logs */}
       {activeTab === "logs" && (
-        <section className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setLogType("access")}
-                className={`rounded px-3 py-1 text-xs font-medium transition ${
-                  logType === "access"
-                    ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/30"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Access Log ({detail?.accessLogs.length ?? 0} 行)
-              </button>
-              <button
-                onClick={() => setLogType("error")}
-                className={`rounded px-3 py-1 text-xs font-medium transition ${
-                  logType === "error"
-                    ? "bg-red-600/20 text-red-300 border border-red-500/30"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Error Log ({detail?.errorLogs.length ?? 0} 行)
-              </button>
-            </div>
-            <button
-              onClick={load}
-              className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:border-zinc-500"
-            >
-              <ArrowsClockwiseIcon size={12} weight="bold" /> 刷新日志
-            </button>
-          </div>
-
-          <div className="mt-3">
-            <p className="text-[11px] text-zinc-500 font-mono mb-2 truncate">
-              文件路径: {logType === "access" ? detail?.accessLogPath : detail?.errorLogPath}
-            </p>
-            <div className="h-96 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] leading-tight text-zinc-300 space-y-1">
-              {logType === "access" ? (
-                detail?.accessLogs.length ? (
-                  detail.accessLogs.map((l, i) => (
-                    <div key={i} className="hover:bg-zinc-900/60 py-0.5 whitespace-pre-wrap">
-                      {l}
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-zinc-600 text-center py-8">暂无访问日志</div>
-                )
-              ) : (
-                detail?.errorLogs.length ? (
-                  detail.errorLogs.map((l, i) => (
-                    <div
-                      key={i}
-                      className={`hover:bg-zinc-900/60 py-0.5 whitespace-pre-wrap ${
-                        l.includes("[error]") || l.includes("[crit]")
-                          ? "text-red-400"
-                          : l.includes("[warn]")
-                          ? "text-amber-400"
-                          : "text-zinc-400"
-                      }`}
-                    >
-                      {l}
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-zinc-600 text-center py-8">暂无错误日志</div>
-                )
-              )}
-            </div>
-          </div>
-        </section>
+        <LogsTab
+          logType={logType}
+          onChangeLogType={setLogType}
+          accessLogs={detail?.accessLogs ?? []}
+          errorLogs={detail?.errorLogs ?? []}
+          accessLogPath={detail?.accessLogPath ?? ""}
+          errorLogPath={detail?.errorLogPath ?? ""}
+          onRefresh={load}
+        />
       )}
 
       {/* Tab 4: Processes & Build Info */}
       {activeTab === "info" && (
-        <section className="mt-6 space-y-6">
-          {/* Processes */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-            <h2 className="text-sm font-semibold text-zinc-200">当前活跃进程 (Processes)</h2>
-            <div className="mt-3 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950/60">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-zinc-800/80 text-[11px] text-zinc-500">
-                    <th className="px-3 py-2 font-medium">PID</th>
-                    <th className="px-3 py-2 font-medium">用户</th>
-                    <th className="px-3 py-2 font-medium">CPU</th>
-                    <th className="px-3 py-2 font-medium">MEM</th>
-                    <th className="px-3 py-2 font-medium">指令</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/40 font-mono text-[11px]">
-                  {(!detail?.processes || detail.processes.length === 0) ? (
-                    <tr>
-                      <td colSpan={5} className="px-3 py-4 text-center text-zinc-600">
-                        无正在运行的 Nginx 进程
-                      </td>
-                    </tr>
-                  ) : (
-                    detail.processes.map((proc, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-900/40">
-                        <td className="px-3 py-2 text-emerald-400">{proc.pid}</td>
-                        <td className="px-3 py-2 text-zinc-400">{proc.user}</td>
-                        <td className="px-3 py-2 text-zinc-400">{proc.cpu}</td>
-                        <td className="px-3 py-2 text-zinc-400">{proc.mem}</td>
-                        <td className="px-3 py-2 text-zinc-300 truncate max-w-lg" title={proc.command}>
-                          {proc.command}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Build Info */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-            <h2 className="text-sm font-semibold text-zinc-200">编译模块与配置参数</h2>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {(detail?.buildInfo.configureArgs ?? []).map((arg, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1 font-mono text-[11px] text-zinc-300"
-                >
-                  {arg}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
+        <InfoTab
+          processes={detail?.processes ?? []}
+          configureArgs={detail?.buildInfo.configureArgs ?? []}
+        />
       )}
 
       {modal && <ActionResultModal state={modal} onClose={closeModal} />}

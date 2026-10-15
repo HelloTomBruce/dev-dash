@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ghActionExecutors } from "@/lib/gh/actions";
 import { GH_ACTION_META } from "@/lib/gh/action-meta";
+import { isLocalRequest } from "@/lib/http/local-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,12 +14,7 @@ export const dynamic = "force-dynamic";
  *  - 参数校验失败返回 400（validate.ts 抛错）
  */
 export async function POST(request: Request) {
-  const host = request.headers.get("host") ?? "";
-  if (
-    !host.startsWith("localhost") &&
-    !host.startsWith("127.0.0.1") &&
-    !host.startsWith("[::1]")
-  ) {
+  if (!isLocalRequest(request)) {
     return NextResponse.json({ error: "仅允许 localhost 调用" }, { status: 403 });
   }
 

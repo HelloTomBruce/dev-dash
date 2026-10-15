@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { run } from "@/lib/detectors/utils/shell";
+import { run, runArgs, shQuote } from "@/lib/detectors/utils/shell";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +50,8 @@ export async function GET() {
     const versionsDir = `${prefix}/n/versions/node`;
 
     const [duRes, writableRes, releases] = await Promise.all([
-      run(`du -sh "${versionsDir}"/* 2>/dev/null`, 30000),
-      run(`test -w "${versionsDir}"`, 5000),
+      run(`du -sh ${shQuote(versionsDir)}/* 2>/dev/null`, 30000),
+      runArgs("test", ["-w", versionsDir], 5000),
       fetchReleases().catch(() => [] as NodeRelease[]),
     ]);
 

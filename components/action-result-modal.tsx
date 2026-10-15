@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { XIcon } from "@phosphor-icons/react";
-import type { ActionResult } from "@/lib/actions/registry";
+import type { ActionResult } from "@/lib/actions/types";
 import type { TaskResult } from "@/lib/tasks/types";
+import { useModalA11y } from "@/components/ui/use-focus-trap";
 
 export interface ResultModalState {
   title: string;
@@ -48,16 +49,15 @@ export function ActionResultModal({
     return () => clearTimeout(id);
   }, [state.taskId]);
 
-  // 监听 Escape
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !state.loading && !taskLoading) onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, state.loading, taskLoading]);
-
+  // 焦点陷阱 + Escape 关闭
   const isLoading = state.loading || taskLoading;
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalA11y(panelRef, {
+    onEscape: () => {
+      if (!isLoading) onClose();
+    },
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -66,10 +66,19 @@ export function ActionResultModal({
         onClick={() => !isLoading && onClose()}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
-      <div className="relative flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="action-result-title"
+        tabIndex={-1}
+        className="relative flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl outline-none"
+      >
         {/* 头部 */}
         <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5">
-          <h2 className="text-sm font-semibold">{state.title}</h2>
+          <h2 id="action-result-title" className="text-sm font-semibold">
+            {state.title}
+          </h2>
           <div className="flex items-center gap-2.5">
             {task && (task.status === "done" || task.status === "failed") && (
               <span
@@ -88,6 +97,7 @@ export function ActionResultModal({
             <button
               onClick={onClose}
               disabled={isLoading}
+              aria-label="关闭"
               className="rounded-lg px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-40"
             >
               <XIcon size={14} weight="bold" />

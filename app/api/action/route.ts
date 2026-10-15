@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ACTION_META } from "@/lib/actions/meta";
 import { actionExecutors } from "@/lib/actions/registry";
 import { createTask, updateTask } from "@/lib/tasks/registry";
+import { isLocalRequest } from "@/lib/http/local-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,12 +17,7 @@ export const dynamic = "force-dynamic";
  * 前端通过 /api/tasks/[taskId] 轮询状态。
  */
 export async function POST(request: Request) {
-  const host = request.headers.get("host") ?? "";
-  if (
-    !host.startsWith("localhost") &&
-    !host.startsWith("127.0.0.1") &&
-    !host.startsWith("[::1]")
-  ) {
+  if (!isLocalRequest(request)) {
     return NextResponse.json({ error: "仅允许 localhost 调用" }, { status: 403 });
   }
 
@@ -72,10 +68,7 @@ export async function POST(request: Request) {
   // 同步任务：直接执行并返回结果
   try {
     const result = await actionExecutors[id](body.params);
-    return NextResponse.json(
-      { ...result, label: ACTION_META[id]?.label },
-      { status: result.ok ? 200 : 200 }
-    );
+    return NextResponse.json({ ...result, label: ACTION_META[id]?.label });
   } catch (err) {
     return NextResponse.json(
       { ok: false, actionId: id, error: String(err), output: "", durationMs: 0 },

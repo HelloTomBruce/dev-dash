@@ -1,22 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ToolCard } from "@/components/tool-card";
 import { InventoryDrawer } from "@/components/inventory-drawer";
 import { PortInspectorDrawer } from "@/components/port-inspector-drawer";
 import { DevCleanerDrawer } from "@/components/dev-cleaner-drawer";
 import { DoctorDrawer } from "@/components/doctor-drawer";
-import { CommandPalette, type PaletteItem } from "@/components/command-palette";
+import { CommandPalette } from "@/components/command-palette";
 import { CategoryIcon } from "@/components/icons";
 import { PlugsIcon, BroomIcon, StethoscopeIcon, MagnifyingGlassIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
-import { CATEGORY_META, type Category, type ScanResult } from "@/lib/detectors/types";
+import { CATEGORY_META, type Category } from "@/lib/detectors/types";
 import { INVENTORY_META, type InventoryMeta } from "@/lib/inventories/meta";
-import { ACTION_META, COMMON_ACTIONS, DETAIL_PAGES, SERVICE_ACTIONS, TOOL_ACTIONS, type ToolActionDef } from "@/lib/actions/meta";
-import { ActionResultModal, type ResultModalState } from "@/components/action-result-modal";
-import type { HealthCheckResult } from "@/lib/health/providers";
-
-const AUTO_REFRESH_MS = 30_000;
+import { COMMON_ACTIONS, TOOL_ACTIONS, SERVICE_ACTIONS, type ToolActionDef } from "@/lib/actions/meta";
+import { ActionResultModal } from "@/components/action-result-modal";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { useCopy } from "@/components/dashboard/use-copy";
+import { useDashboardScan } from "@/components/dashboard/use-dashboard-scan";
+import { useToolActions } from "@/components/dashboard/use-tool-actions";
+import { usePaletteItems } from "@/components/dashboard/use-palette-items";
 
 const CATEGORY_ORDER: Category[] = [
   "runtime",
@@ -29,73 +31,26 @@ const CATEGORY_ORDER: Category[] = [
 
 export default function Home() {
   const router = useRouter();
-  const [data, setData] = useState<ScanResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const [drawer, setDrawer] = useState<InventoryMeta | null>(null);
   const [portDrawerOpen, setPortDrawerOpen] = useState(false);
   const [cleanerDrawerOpen, setCleanerDrawerOpen] = useState(false);
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false);
-  const [health, setHealth] = useState<Record<string, HealthCheckResult>>({});
-  const [actionBusy, setActionBusy] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-  const [resultModal, setResultModal] = useState<ResultModalState | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [packageIndex, setPackageIndex] = useState<
-    Array<{ name: string; version: string | null; toolId: string; group: string }>
-  >([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchScan = useCallback(async (force = false) => {
-    setRefreshing(true);
-    try {
-      const [scanRes, healthRes] = await Promise.all([
-        fetch(`/api/scan${force ? "?force=1" : ""}`),
-        fetch(`/api/health${force ? "?force=1" : ""}`),
-      ]);
-      if (!scanRes.ok) throw new Error(`HTTP ${scanRes.status}`);
-      const json: ScanResult = await scanRes.json();
-      setData(json);
-      if (healthRes.ok) {
-        const hj: { results: HealthCheckResult[] } = await healthRes.json();
-        setHealth(
-          Object.fromEntries(hj.results.map((h) => [h.toolId, h]))
-        );
-      }
-      setError(null);
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // setTimeout 避免在 effect 体内同步 setState（react-hooks/set-state-in-effect）
-    const t = setTimeout(() => fetchScan(true), 0);
-    return () => clearTimeout(t);
-  }, [fetchScan]);
-
-  useEffect(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (autoRefresh) {
-      timerRef.current = setInterval(() => fetchScan(false), AUTO_REFRESH_MS);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [autoRefresh, fetchScan]);
-
-  const handleCopy = useCallback((text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(text);
-      setTimeout(() => setCopied(null), 1500);
-    });
-  }, []);
+  const {
+    data,
+    loading,
+    refreshing,
+    error,
+    health,
+    autoRefresh,
+    setAutoRefresh,
+    packageIndex,
+    fetchScan,
+  } = useDashboardScan();
+  const { copied, handleCopy } = useCopy();
+  const { actionBusy, toast, resultModal, setResultModal, runServiceAction, runToolAction } =
+    useToolActions(fetchScan, handleCopy);
 
   // ⌘K / Ctrl+K 打开全局搜索
   useEffect(() => {
@@ -109,257 +64,22 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // 扫描完成后后台预取清单内容，构建包索引（服务端有 60s 缓存，开销可控）
-  useEffect(() => {
-    if (!data) return;
-    const specs = [
-      { id: "npm-global", toolId: "npm", group: "npm 全局包" },
-      { id: "brew", toolId: "brew", group: "brew 软件包" },
-      { id: "uv-tools", toolId: "uv", group: "uv 工具" },
-      { id: "n-versions", toolId: "n", group: "Node 版本" },
-    ].filter((s) => data.tools.find((t) => t.id === s.toolId)?.status === "ok");
-    let cancelled = false;
-    Promise.all(
-      specs.map((s) =>
-        fetch(`/api/inventory?id=${s.id}`)
-          .then((r) => r.json())
-          .then((j) =>
-            ((j.items ?? []) as Array<{ name: string; version: string | null }>).map(
-              (it) => ({ name: it.name, version: it.version, toolId: s.toolId, group: s.group })
-            )
-          )
-          .catch(
-            () => [] as Array<{ name: string; version: string | null; toolId: string; group: string }>
-          )
-      )
-    ).then((all) => {
-      if (!cancelled) setPackageIndex(all.flat());
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [data]);
+  const navigate = useCallback((path: string) => router.push(path), [router]);
+  const openDrawer = useCallback((entry: InventoryMeta) => setDrawer(entry), []);
+  const openPorts = useCallback(() => setPortDrawerOpen(true), []);
+  const openCleaner = useCallback(() => setCleanerDrawerOpen(true), []);
+  const openDoctor = useCallback(() => setDoctorDrawerOpen(true), []);
 
-  /** 执行服务启停动作 */
-  const runServiceAction = useCallback(
-    async (toolId: string, kind: "start" | "stop") => {
-      const svc = SERVICE_ACTIONS[toolId];
-      const ref = kind === "start" ? svc?.start : svc?.stop;
-      if (!ref) return;
-      const meta = ACTION_META[ref.actionId];
-      if (meta && meta.level !== "safe" && !window.confirm(`确认${meta.label}？`)) {
-        return;
-      }
-      setActionBusy(toolId);
-      try {
-        const res = await fetch("/api/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: ref.actionId, params: ref.params }),
-        });
-        const j = await res.json();
-        setToast({
-          msg: j.ok
-            ? `${j.label ?? ref.actionId}成功（${j.durationMs}ms）`
-            : `${j.label ?? ref.actionId}失败：${j.error ?? "未知错误"}`,
-          type: j.ok ? "ok" : "err",
-        });
-        // 刷新扫描 + 健康状态（强制绕过缓存）
-        await fetchScan(true);
-      } catch (e) {
-        setToast({ msg: `请求失败：${String(e)}`, type: "err" });
-      } finally {
-        setActionBusy(null);
-        setTimeout(() => setToast(null), 4000);
-      }
-    },
-    [fetchScan]
-  );
-
-  /** 执行工具操作菜单项（通用复制 + 服务端动作） */
-  const runToolAction = useCallback(
-    async (
-      tool: { id: string; name: string; version: string | null; path: string | null },
-      def: ToolActionDef
-    ) => {
-      // 纯前端操作
-      if (def.clientAction === "copy-version" && tool.version) {
-        handleCopy(tool.version);
-        return;
-      }
-      if (def.clientAction === "copy-path" && tool.path) {
-        handleCopy(tool.path);
-        return;
-      }
-      if (!def.actionId) return;
-
-      // 分级确认
-      if (def.level === "careful" && !window.confirm(`确认执行「${def.label}」？（${tool.name}）`)) {
-        return;
-      }
-      if (def.level === "dangerous" && !window.confirm(`⚠️ 危险操作「${def.label}」（${tool.name}）\n\n该操作会删除数据，确认继续？`)) {
-        return;
-      }
-
-      // open-dir 的 dir 参数从工具路径推导
-      const params =
-        def.actionId === "tool.open-dir" && tool.path
-          ? { dir: tool.path.split("/").slice(0, -1).join("/") }
-          : def.params;
-
-      setActionBusy(`${tool.id}:${def.key}`);
-      setResultModal({ title: `${tool.name} · ${def.label}`, loading: true, result: null });
-      try {
-        const res = await fetch("/api/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: def.actionId, params }),
-        });
-        const j = await res.json();
-
-        // 异步任务：显示轮询弹窗
-        if (j.taskId) {
-          setResultModal({
-            title: `${tool.name} · ${def.label}`,
-            loading: true,
-            result: null,
-            taskId: j.taskId,
-          });
-          // 轮询完成后刷新扫描
-          const checkTask = async () => {
-            try {
-              while (true) {
-                const tr = await fetch(`/api/tasks?taskId=${j.taskId}`);
-                const t = await tr.json();
-                if (t.status === "done" || t.status === "failed") {
-                  setResultModal({
-                    title: `${tool.name} · ${def.label}`,
-                    loading: false,
-                    result: {
-                      ok: t.status === "done",
-                      actionId: def.actionId!,
-                      command: "",
-                      output: t.output,
-                      error: t.error,
-                      durationMs: t.durationMs,
-                      label: def.label,
-                    },
-                  });
-                  if (t.status === "done" && def.refreshAfter) {
-                    await fetchScan(true);
-                  }
-                  break;
-                }
-                await new Promise((r) => setTimeout(r, 2000));
-              }
-            } catch {
-              // ignore
-            }
-          };
-          checkTask();
-          return;
-        }
-
-        setResultModal({ title: `${tool.name} · ${def.label}`, loading: false, result: j });
-        if (j.ok && def.refreshAfter) {
-          await fetchScan(true);
-        }
-      } catch (e) {
-        setResultModal({
-          title: `${tool.name} · ${def.label}`,
-          loading: false,
-          result: { ok: false, actionId: def.actionId, command: "", output: "", error: String(e), durationMs: 0 },
-        });
-      } finally {
-        setActionBusy(null);
-      }
-    },
-    [fetchScan, handleCopy]
-  );
-
-  /** 搜索面板条目 */
-  const paletteItems = useMemo<PaletteItem[]>(() => {
-    if (!data) return [];
-    const items: PaletteItem[] = [];
-    const toolById = new Map(data.tools.map((t) => [t.id, t]));
-
-    // 详情页
-    for (const id of DETAIL_PAGES) {
-      const t = toolById.get(id);
-      if (t?.status === "ok") {
-        items.push({
-          id: `page:${id}`,
-          label: `${t.name} 详情页`,
-          sub: t.version ?? undefined,
-          group: "详情页",
-          action: () => router.push(`/tools/${id}`),
-        });
-      }
-    }
-    // 工具
-    for (const t of data.tools) {
-      if (t.status !== "ok") continue;
-      const hasDetail = DETAIL_PAGES.includes(t.id);
-      const invs = INVENTORY_META.filter((m) => m.toolId === t.id);
-      items.push({
-        id: `tool:${t.id}`,
-        label: t.name,
-        sub: t.version ?? undefined,
-        group: "工具",
-        action: () => {
-          if (hasDetail) router.push(`/tools/${t.id}`);
-          else if (invs.length > 0) setDrawer(invs[0]);
-          else if (t.path) handleCopy(t.path);
-        },
-      });
-    }
-    // 清单
-    for (const inv of INVENTORY_META) {
-      if (toolById.get(inv.toolId)?.status === "ok") {
-        items.push({
-          id: `inv:${inv.id}`,
-          label: inv.label,
-          group: "已装清单",
-          action: () => setDrawer(inv),
-        });
-      }
-    }
-    // 包索引（预取的清单内容）
-    for (const p of packageIndex) {
-      items.push({
-        id: `pkg:${p.toolId}:${p.name}`,
-        label: p.name,
-        sub: p.version ?? undefined,
-        group: p.group,
-        action: () => router.push(`/tools/${p.toolId}`),
-      });
-    }
-
-    // 常用系统与诊断
-    items.push({
-      id: "sys:ports",
-      label: "端口占用监控 (Port Inspector)",
-      sub: "实时查看监听端口、开发服务与进程释放",
-      group: "系统与诊断",
-      action: () => setPortDrawerOpen(true),
-    });
-    items.push({
-      id: "sys:cleaner",
-      label: "开发磁盘清理助手 (Dev Cleaner)",
-      sub: "扫描并一键清理包管理器临时下载与构建缓存",
-      group: "系统与诊断",
-      action: () => setCleanerDrawerOpen(true),
-    });
-    items.push({
-      id: "sys:doctor",
-      label: "开发环境体检与冲突诊断 (Environment Doctor)",
-      sub: "检测 PATH 优先级、多版本覆盖遮蔽与失效环境变量",
-      group: "系统与诊断",
-      action: () => setDoctorDrawerOpen(true),
-    });
-
-    return items;
-  }, [data, packageIndex, router, handleCopy]);
+  const paletteItems = usePaletteItems({
+    data,
+    packageIndex,
+    navigate,
+    copy: handleCopy,
+    openDrawer,
+    openPorts,
+    openCleaner,
+    openDoctor,
+  });
 
   /** 工具的操作菜单 = 通用操作 + 工具专属操作 */
   const actionsFor = useCallback(
@@ -412,19 +132,19 @@ export default function Home() {
             <kbd className="rounded border border-zinc-700 px-1 text-[10px]">⌘K</kbd>
           </button>
           <button
-            onClick={() => setPortDrawerOpen(true)}
+            onClick={openPorts}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
             <PlugsIcon size={15} weight="regular" /> 端口监控
           </button>
           <button
-            onClick={() => setCleanerDrawerOpen(true)}
+            onClick={openCleaner}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
             <BroomIcon size={15} weight="regular" /> 磁盘清理
           </button>
           <button
-            onClick={() => setDoctorDrawerOpen(true)}
+            onClick={openDoctor}
             className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
           >
             <StethoscopeIcon size={15} weight="regular" /> 环境体检
@@ -608,32 +328,5 @@ export default function Home() {
         onClose={() => setPaletteOpen(false)}
       />
     </main>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "emerald" | "red" | "zinc" | "amber";
-}) {
-  const toneCls =
-    tone === "emerald"
-      ? "text-emerald-400"
-      : tone === "red"
-        ? "text-red-400"
-        : tone === "amber"
-          ? "text-amber-400"
-          : "text-zinc-300";
-  return (
-    <div className="flex items-baseline gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-      <span className={`text-2xl font-bold tabular-nums ${toneCls}`}>
-        {value}
-      </span>
-      <span className="text-xs text-zinc-500">{label}</span>
-    </div>
   );
 }

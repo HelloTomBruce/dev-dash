@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { run } from "@/lib/detectors/utils/shell";
+import { runArgs } from "@/lib/detectors/utils/shell";
 
 export interface CleanerTarget {
   id: string;
@@ -44,7 +44,7 @@ async function getDirSize(dirPath: string): Promise<number> {
   }
 
   try {
-    const res = await run(`du -sk "${dirPath}" 2>/dev/null`, 4000);
+    const res = await runArgs("du", ["-sk", dirPath], 4000, { redirections: "2>/dev/null" });
     if (res.ok && res.stdout) {
       const match = res.stdout.trim().split(/\s+/)[0];
       const kb = parseInt(match, 10);

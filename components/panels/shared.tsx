@@ -1,65 +1,22 @@
 "use client";
 
 import { ArrowLeftIcon } from "@phosphor-icons/react";
-import { useCallback, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import type { ResultModalState } from "@/components/action-result-modal";
 import { ACTION_META } from "@/lib/actions/meta";
+import { useActionRunnerCore, type ActionRunnerConfig } from "./use-action-core";
 
 /** 面板通用：动作执行 hook（确认分级 + 结果弹窗状态 + 成功后回调） */
 export function useActionRunner(onSuccess?: () => void | Promise<void>) {
-  const [modal, setModal] = useState<ResultModalState | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const runAction = useCallback(
-    async (opts: {
-      actionId: string;
-      label: string;
-      params?: Record<string, string>;
-      targetText?: string;
-    }) => {
-      const { actionId, label, params, targetText } = opts;
-      const level = ACTION_META[actionId]?.level ?? "safe";
-      const t = targetText ? ` ${targetText}` : "";
-      if (level === "careful" && !window.confirm(`确认执行「${label}${t}」？`)) return;
-      if (
-        level === "dangerous" &&
-        !window.confirm(`⚠️ 危险操作「${label}${t}」\n\n该操作会删除数据，确认继续？`)
-      )
-        return;
-
-      setBusy(true);
-      setModal({ title: `${label}${t}`, loading: true, result: null });
-      try {
-        const res = await fetch("/api/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: actionId, params }),
-        });
-        const j = await res.json();
-        setModal({ title: `${label}${t}`, loading: false, result: j });
-        if (j.ok) await onSuccess?.();
-      } catch (e) {
-        setModal({
-          title: `${label}${t}`,
-          loading: false,
-          result: {
-            ok: false,
-            actionId,
-            command: "",
-            output: "",
-            error: String(e),
-            durationMs: 0,
-          },
-        });
-      } finally {
-        setBusy(false);
-      }
-    },
-    [onSuccess]
+  const config = useMemo<ActionRunnerConfig>(
+    () => ({
+      endpoint: "/api/action",
+      levelOf: (id) => ACTION_META[id]?.level ?? "safe",
+      dangerousHint: "该操作会删除数据，确认继续？",
+    }),
+    []
   );
-
-  return { modal, busy, runAction, closeModal: () => setModal(null) };
+  return useActionRunnerCore(config, onSuccess);
 }
 
 export function BackLink() {

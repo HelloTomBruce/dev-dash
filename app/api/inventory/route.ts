@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import { INVENTORY_META } from "@/lib/inventories/meta";
 import { inventoryProviders } from "@/lib/inventories/providers";
+import { withTimeout, isTimeout } from "@/lib/utils/timeout";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const CACHE_TTL_MS = 60_000;
 const cache = new Map<string, { at: number; payload: unknown }>();
-
-async function withTimeout<T>(
-  p: Promise<T>,
-  ms: number
-): Promise<T | { __timeout: true }> {
-  return Promise.race([
-    p,
-    new Promise<{ __timeout: true }>((resolve) =>
-      setTimeout(() => resolve({ __timeout: true }), ms)
-    ),
-  ]);
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -40,7 +29,7 @@ export async function GET(request: Request) {
   const start = Date.now();
   try {
     const out = await withTimeout(inventoryProviders[id](), 30_000);
-    if (out && typeof out === "object" && "__timeout" in out) {
+    if (isTimeout(out)) {
       throw new Error("获取清单超时");
     }
     const payload = {

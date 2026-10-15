@@ -1,9 +1,4 @@
-import { run } from "@/lib/detectors/utils/shell";
-
-/** zsh 单引号转义：把参数包成 '...'，内部单引号替换为 '"'"' */
-export function zshQuote(s: string): string {
-  return `'${s.replace(/'/g, `'"'"'`)}'`;
-}
+import { run, shQuote } from "@/lib/detectors/utils/shell";
 
 /**
  * 参数数组化的 gh 执行器。
@@ -13,7 +8,7 @@ export async function runGh(
   args: string[],
   timeoutMs = 15000
 ): Promise<{ ok: boolean; stdout: string; stderr: string }> {
-  return run(`gh ${args.map(zshQuote).join(" ")}`, timeoutMs);
+  return run(`gh ${args.map(shQuote).join(" ")}`, timeoutMs);
 }
 
 /** 运行 gh 并解析 JSON stdout；失败抛错（stderr 摘要） */

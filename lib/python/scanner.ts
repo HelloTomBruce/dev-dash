@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { run, extractVersion } from "@/lib/detectors/utils/shell";
+import { run, runArgs, extractVersion } from "@/lib/detectors/utils/shell";
 import type { PipConfigInfo, PythonOverviewResult, PythonRuntimeInfo, VirtualEnvInfo } from "./types";
 
 function formatBytes(bytes: number): string {
@@ -65,7 +65,7 @@ async function scanPythonRuntimes(): Promise<PythonRuntimeInfo[]> {
 
     let version: string | null = null;
     try {
-      const vRes = await run(`"${p}" --version 2>&1`, 2500);
+      const vRes = await runArgs(p, ["--version"], 2500, { redirections: "2>&1" });
       version = extractVersion(vRes.stdout || vRes.stderr);
     } catch {
       // ignore
@@ -108,7 +108,7 @@ async function inspectVirtualEnv(venvPath: string, projectName: string, projectP
   // 计算大小
   let sizeBytes = 0;
   try {
-    const duRes = await run(`du -sk "${venvPath}" 2>/dev/null`, 4000);
+    const duRes = await runArgs("du", ["-sk", venvPath], 4000, { redirections: "2>/dev/null" });
     if (duRes.ok && duRes.stdout) {
       const kb = parseInt(duRes.stdout.trim().split(/\s+/)[0], 10);
       if (!isNaN(kb)) sizeBytes = kb * 1024;

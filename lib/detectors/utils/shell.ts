@@ -79,3 +79,24 @@ export function extractVersion(out: string): string | null {
   const m = out.match(/(\d+(\.\d+)+(-[\w.]+)?)/);
   return m ? m[1] : null;
 }
+
+/** zsh 单引号安全转义：把任意字符串包成 '...'，内部单引号替换为 '"'"' */
+export function shQuote(s: string): string {
+  return `'${s.replace(/'/g, `'"'"'`)}'`;
+}
+
+/**
+ * 参数数组化执行：调用方只传二进制与参数数组，禁止拼接命令字符串。
+ * 每个 token 经 shQuote 转义，杜绝含 shell 元字符的值（路径/名称/包名）造成注入。
+ * `opts.redirections` 原样追加到命令末尾（如 "2>/dev/null"）。
+ */
+export async function runArgs(
+  bin: string,
+  args: string[],
+  timeoutMs = 5000,
+  opts?: { okIfOutput?: boolean; redirections?: string }
+): Promise<ExecResult> {
+  const tail = opts?.redirections ? ` ${opts.redirections}` : "";
+  const cmd = [bin, ...args].map(shQuote).join(" ") + tail;
+  return run(cmd, timeoutMs, opts);
+}

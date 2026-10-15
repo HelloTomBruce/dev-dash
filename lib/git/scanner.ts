@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { run, extractVersion } from "@/lib/detectors/utils/shell";
+import { run, runArgs, extractVersion } from "@/lib/detectors/utils/shell";
 import type { GitConfig, GitOverviewResult, LocalRepoInfo, SshKeyInfo } from "./types";
 
 /** 扫描 Git 全局配置 */
@@ -73,7 +73,7 @@ async function scanSshKeys(home: string): Promise<{ sshKeys: SshKeyInfo[]; sshAg
       try {
         const [content, fpRes] = await Promise.all([
           fs.readFile(fullPath, "utf-8"),
-          run(`ssh-keygen -lf "${fullPath}"`, 3000),
+          runArgs("ssh-keygen", ["-lf", fullPath], 3000),
         ]);
 
         let bits: string | null = null;
@@ -131,11 +131,11 @@ async function inspectRepo(repoPath: string, home: string): Promise<LocalRepoInf
   const repoName = path.basename(repoPath);
   try {
     const [branchRes, statusRes, remoteRes, logRes, countRes] = await Promise.all([
-      run(`git -C "${repoPath}" rev-parse --abbrev-ref HEAD 2>/dev/null`, 2500),
-      run(`git -C "${repoPath}" status --porcelain=v1 2>/dev/null`, 3000),
-      run(`git -C "${repoPath}" remote get-url origin 2>/dev/null`, 2500),
-      run(`git -C "${repoPath}" log -1 --format="%h|%s|%an|%cr" 2>/dev/null`, 2500),
-      run(`git -C "${repoPath}" rev-list --left-right --count @{u}...HEAD 2>/dev/null`, 2500),
+      runArgs("git", ["-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"], 2500, { redirections: "2>/dev/null" }),
+      runArgs("git", ["-C", repoPath, "status", "--porcelain=v1"], 3000, { redirections: "2>/dev/null" }),
+      runArgs("git", ["-C", repoPath, "remote", "get-url", "origin"], 2500, { redirections: "2>/dev/null" }),
+      runArgs("git", ["-C", repoPath, "log", "-1", "--format=%h|%s|%an|%cr"], 2500, { redirections: "2>/dev/null" }),
+      runArgs("git", ["-C", repoPath, "rev-list", "--left-right", "--count", "@{u}...HEAD"], 2500, { redirections: "2>/dev/null" }),
     ]);
 
     if (!branchRes.ok) return null; // not a valid git repo

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { XIcon } from "@phosphor-icons/react";
 import type { InventoryItem, InventoryMeta, InventoryResult } from "@/lib/inventories/meta";
+import { useModalA11y } from "@/components/ui/use-focus-trap";
 
 export function InventoryDrawer({
   entry,
@@ -45,14 +46,9 @@ export function InventoryDrawer({
     return () => clearTimeout(t);
   }, [load]);
 
-  // Esc 关闭
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  // 焦点陷阱 + Esc 关闭
+  const panelRef = useRef<HTMLElement>(null);
+  useModalA11y(panelRef, { onEscape: onClose });
 
   const items = (data?.items ?? []).filter((it: InventoryItem) =>
     search
@@ -70,7 +66,14 @@ export function InventoryDrawer({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
 
-      <aside className="relative flex h-full w-full max-w-md flex-col border-l border-zinc-800 bg-zinc-950 shadow-2xl">
+      <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={entry.label}
+        tabIndex={-1}
+        className="relative flex h-full w-full max-w-md flex-col border-l border-zinc-800 bg-zinc-950 shadow-2xl outline-none"
+      >
         {/* 头部 */}
         <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
           <div>
@@ -91,6 +94,7 @@ export function InventoryDrawer({
             </button>
             <button
               onClick={onClose}
+              aria-label="关闭"
               className="rounded-lg px-2 py-1 text-sm text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
             >
               <XIcon size={14} weight="bold" />
